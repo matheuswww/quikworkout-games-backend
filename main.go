@@ -1,0 +1,81 @@
+package main
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
+	"github.com/matheuswww/quikworkout-games-backend/src/routes"
+)
+
+func main() {
+	loadEnv()
+	logger.LoadLogger()
+	logger.Info("About to start user application")
+	file, err := os.OpenFile("./log/log.txt",  os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Fatal("error trying open log")
+	}
+	defer file.Close()
+	multiWriter := io.MultiWriter(os.Stdout, file)
+	gin.DefaultWriter = multiWriter
+	gin.DefaultErrorWriter = multiWriter
+	router := gin.Default()
+	corsConfig := loadCors()
+	mysql := loadMysql()
+	router.Use(cors.New(*corsConfig))
+	router.Static("/images", "./images")
+	routes.InitRoutes(&router.RouterGroup, mysql)
+	chanError := make(chan error)
+	go graceFullyShutdown(router, "8080", chanError, mysql)
+	if err := <-chanError; err != nil {
+		log.Fatal(err)
+	}
+}
+
+func graceFullyShutdown(handler http.Handler, addr string, chanError chan error, mysql *sql.DB) {
+	server := &http.Server{
+		Addr:              fmt.Sprintf(":%s", addr),
+		Handler:           handler,
+		ReadHeaderTimeout: 30 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      1 * time.Minute,
+		IdleTimeout:       2 * time.Minute,
+	}
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			chanError <- fmt.Errorf("an erro ocurred while trying to start application on port %s. Error %v", addr, err)
+			return
+		}
+	}()
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
+	
+	go checkLogs()
+	<-ctx.Done()
+	ctxTimeout, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	logger.Info("Received a shutdown signal, quiting...")
+
+	defer func() {
+		stop()
+		cancel()
+		close(chanError)
+	}()
+
+	err := server.Shutdown(ctxTimeout)
+	if err != nil {
+		logger.Error("Error trying shutdown", err)
+	}
+	logger.Info("Shutdown completed")
+}

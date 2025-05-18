@@ -1,0 +1,19 @@
+package routes
+
+import (
+	"database/sql"
+
+	"github.com/gin-gonic/gin"
+)
+
+func InitRoutes(r *gin.RouterGroup, database *sql.DB) {
+	r.Use(func(c *gin.Context) {
+		c.Header("X-Frame-Options", "DENY")
+		c.Header("Content-Security-Policy", "frame-ancestors 'none'")
+		c.Header("X-Content-Type-Options", "nosniff")
+		c.Header("Cross-Origin-Resource-Policy", "same-origin")
+		c.Header("Cross-Origin-Opener-Policy", "same-origin")
+		c.Header("Referrer-Policy", "no-referrer")
+		c.Next()
+	})
+}
