@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/gin-gonic/gin"
+	user_router "github.com/matheuswww/quikworkout-games-backend/src/routes/user"
 )
 
 func InitRoutes(r *gin.RouterGroup, database *sql.DB) {
@@ -16,4 +17,6 @@ func InitRoutes(r *gin.RouterGroup, database *sql.DB) {
 		c.Header("Referrer-Policy", "no-referrer")
 		c.Next()
 	})
+
+	user_router.InitUserRoutes(r, database)
 }

@@ -1,4 +1,4 @@
-package user_profile_cookie
+package user_proflie_cookie
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	user_cookie "github.com/matheuswww/quikworkout-games-backend/src/cookies"
+	user_cookie "github.com/matheuswww/quikworkout-games-backend/src/cookies/user"
 )
 
 var (

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"io"
 	"log"
@@ -37,13 +36,13 @@ func main() {
 	router.Static("/images", "./images")
 	routes.InitRoutes(&router.RouterGroup, mysql)
 	chanError := make(chan error)
-	go graceFullyShutdown(router, "8080", chanError, mysql)
+	go graceFullyShutdown(router, "8081", chanError)
 	if err := <-chanError; err != nil {
 		log.Fatal(err)
 	}
 }
 
-func graceFullyShutdown(handler http.Handler, addr string, chanError chan error, mysql *sql.DB) {
+func graceFullyShutdown(handler http.Handler, addr string, chanError chan error) {
 	server := &http.Server{
 		Addr:              fmt.Sprintf(":%s", addr),
 		Handler:           handler,
