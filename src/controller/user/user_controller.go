@@ -17,4 +17,5 @@ type userController struct {
 
 type UserController interface {
 	CreateAccount(c *gin.Context)
+	EnterAccount(c *gin.Context)
 }

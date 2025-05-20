@@ -26,6 +26,7 @@ func InitUserRoutes(r *gin.RouterGroup, database *sql.DB) {
 	sessionNames := []string{user_proflie_cookie.SessionUserProfile, user_games_cookie.SessionUserGames}
 	r.Use(sessions.SessionsMany(sessionNames, cookieStore))
 	r.POST("/account/createAccount", userController.CreateAccount)
+	r.POST("/account/enterAccount", userController.EnterAccount)
 }
 
 func initUserRoutes(database *sql.DB) user_controller.UserController {

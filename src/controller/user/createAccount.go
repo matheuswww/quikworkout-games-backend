@@ -48,8 +48,8 @@ func (uc *userController) CreateAccount(c *gin.Context) {
 	}
 	cookieErr := user_games_cookie.SendUserGamesCookie(c, userDomain.GetId(), userDomain.GetSessionId(), true)
 	if cookieErr != nil {
-		logger.Error("Error trying create session", cookieErr, zap.String("journey", "CheckContactValidationCode Controller"))
-		restErr := rest_err.NewInternalServerError("usuário verificado porém não foi possível criar uma sessão")
+		logger.Error("Error trying create session", cookieErr, zap.String("journey", "CreateAccount Controller"))
+		restErr := rest_err.NewInternalServerError("usuário criado porém não foi possível criar uma sessão")
 		c.JSON(restErr.Code, restErr)
 		return
 	}

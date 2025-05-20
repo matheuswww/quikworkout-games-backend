@@ -13,7 +13,6 @@ import (
 )
 
 func (ur *userRepository) CreateAccount(userDomain user_domain.UserDomainInterface, sessionIdFromCookie string) *rest_err.RestErr {
-	logger.Info("Init CreateAccount repository")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
