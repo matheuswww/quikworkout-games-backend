@@ -20,4 +20,5 @@ type userService struct {
 type UserService interface {
 	CreateAccount(userDomain user_domain.UserDomainInterface, id, token string) *rest_err.RestErr
 	EnterAccount(userDomain user_domain.UserDomainInterface) *rest_err.RestErr
+	GetAccount(userDomain user_domain.UserDomainInterface, sessionId string) *rest_err.RestErr
 }

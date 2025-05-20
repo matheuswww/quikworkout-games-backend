@@ -20,4 +20,5 @@ type userRepository struct {
 type UserRepository interface {
 	CreateAccount(userDomain user_domain.UserDomainInterface, sessionIdFromCookie string) *rest_err.RestErr
 	EnterAccount(userDomain user_domain.UserDomainInterface) *rest_err.RestErr
+	GetAccount(userDomain user_domain.UserDomainInterface, sessionIdFromCookie string) *rest_err.RestErr
 }

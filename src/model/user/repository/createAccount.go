@@ -17,9 +17,8 @@ func (ur *userRepository) CreateAccount(userDomain user_domain.UserDomainInterfa
 	defer cancel()
 
 	var name, session_id string
-	var verified bool
-	query := "SELECT name, verified, session_id FROM user WHERE user_id = ?"
-	err := ur.mysql.QueryRowContext(ctx, query, userDomain.GetId()).Scan(&name, &verified, &session_id)
+	query := "SELECT name, session_id FROM user WHERE user_id = ?"
+	err := ur.mysql.QueryRowContext(ctx, query, userDomain.GetId()).Scan(&name, &session_id)
 	if err != nil {
 		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "CreateAccount Repository"))
 		return rest_err.NewInternalServerError("server error")
@@ -39,11 +38,6 @@ func (ur *userRepository) CreateAccount(userDomain user_domain.UserDomainInterfa
 	if count != 0 {
 		logger.Error("Error account created", errors.New("account already created"), zap.String("journey", "CreateAccount Repository"))
 		return rest_err.NewBadRequestError("conta já criada")
-	}
-
-	if !verified {
-		logger.Error("Error user not verified", errors.New("user not verified"), zap.String("journey", "CreateAccount Repository"))
-		return rest_err.NewBadRequestError("usuário não verificado")
 	}
 	userDomain.SetName(name)
 
