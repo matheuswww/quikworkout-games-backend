@@ -20,7 +20,7 @@ func InitUserRoutes(r *gin.RouterGroup, database *sql.DB) {
 	userController := initUserRoutes(database)
 	cookieStore, err := user_cookie.Store()
 	if err != nil {
-		logger.Error("Error loading cookie store", err, zap.String("journey", "InitUserTwoAuthRoutes"))
+		logger.Error("Error loading cookie store", err, zap.String("journey", "InitUserRoutes"))
 		log.Fatal("Error cookie store")
 	}
 	sessionNames := []string{user_proflie_cookie.SessionUserProfile, user_games_cookie.SessionUserGames}

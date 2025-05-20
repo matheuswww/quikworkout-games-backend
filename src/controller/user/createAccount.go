@@ -39,6 +39,7 @@ func (uc *userController) CreateAccount(c *gin.Context) {
 		logger.Error("Erro trying get cookie", err, zap.String("journey", "PayOrder Controller"))
 		restErr := rest_err.NewUnauthorizedError("cookie inválido")
 		c.JSON(restErr.Code, restErr)
+		return
 	}
 	userDomain := user_domain.NewUserDomain(cookie.Id, "",  createAccountRequest.User, createAccountRequest.DOB, createAccountRequest.Category, 0, createAccountRequest.CPF, "")
 	restErr := uc.userService.CreateAccount(userDomain, cookie.SessionId, createAccountRequest.Token)

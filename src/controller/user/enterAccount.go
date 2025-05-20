@@ -21,6 +21,7 @@ func (uc *userController) EnterAccount(c *gin.Context) {
 		logger.Error("Erro trying get cookie", err, zap.String("journey", "PayOrder Controller"))
 		restErr := rest_err.NewUnauthorizedError("cookie inválido")
 		c.JSON(restErr.Code, restErr)
+		return
 	}
 	restErr := model_util.CheckUser(cookie.SessionId, cookie.Id)
 	if restErr != nil {
