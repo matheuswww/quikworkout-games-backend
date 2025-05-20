@@ -69,8 +69,8 @@ func (ur *userRepository) CreateAccount(userDomain user_domain.UserDomainInterfa
 		return rest_err.NewBadRequestError("usuário já cadastrado")
 	}
 
-	query = "INSERT INTO user_games (user_id, name, user, dob, category, cpf, earnings) VALUES (?, ?, ?, ?, ?, ?, ?)"
-	_, err = ur.mysql.ExecContext(ctx, query, userDomain.GetId(), userDomain.GetName(), userDomain.GetUser(), userDomain.GetDOB(), userDomain.GetCategory(), userDomain.GetCPF(), userDomain.GetEarnings())
+	query = "INSERT INTO user_games (user_id, name, user, dob, category, cpf, earnings, session_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+	_, err = ur.mysql.ExecContext(ctx, query, userDomain.GetId(), userDomain.GetName(), userDomain.GetUser(), userDomain.GetDOB(), userDomain.GetCategory(), userDomain.GetCPF(), userDomain.GetEarnings(), userDomain.GetSessionId())
 	if err != nil {
 		logger.Error("Error trying insert user", err, zap.String("journey", "CreateAccount Repository"))
 		return rest_err.NewInternalServerError("server error")

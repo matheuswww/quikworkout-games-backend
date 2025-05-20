@@ -12,6 +12,7 @@ import (
 	default_validator "github.com/matheuswww/quikworkout-games-backend/src/configuration/validation/defaultValidator"
 	get_custom_validator "github.com/matheuswww/quikworkout-games-backend/src/controller/model"
 	user_request "github.com/matheuswww/quikworkout-games-backend/src/controller/model/user/request"
+	user_games_cookie "github.com/matheuswww/quikworkout-games-backend/src/cookies/user/user_games"
 	user_proflie_cookie "github.com/matheuswww/quikworkout-games-backend/src/cookies/user/user_profile"
 	user_domain "github.com/matheuswww/quikworkout-games-backend/src/model/user"
 	"go.uber.org/zap"
@@ -39,12 +40,20 @@ func (uc *userController) CreateAccount(c *gin.Context) {
 		restErr := rest_err.NewUnauthorizedError("cookie inválido")
 		c.JSON(restErr.Code, restErr)
 	}
-	userDomain := user_domain.NewUserDomain(cookie.Id, "",  createAccountRequest.User, createAccountRequest.DOB, createAccountRequest.Category, 0, createAccountRequest.CPF)
+	userDomain := user_domain.NewUserDomain(cookie.Id, "",  createAccountRequest.User, createAccountRequest.DOB, createAccountRequest.Category, 0, createAccountRequest.CPF, "")
 	restErr := uc.userService.CreateAccount(userDomain, cookie.SessionId, createAccountRequest.Token)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
+	cookieErr := user_games_cookie.SendUserGamesCookie(c, userDomain.GetId(), userDomain.GetSessionId(), true)
+	if cookieErr != nil {
+		logger.Error("Error trying create session", cookieErr, zap.String("journey", "CheckContactValidationCode Controller"))
+		restErr := rest_err.NewInternalServerError("usuário verificado porém não foi possível criar uma sessão")
+		c.JSON(restErr.Code, restErr)
+		return
+	}
+	c.Header("Access-Control-Expose-Headers", "Set-Cookie")
 	logger.Info(fmt.Sprintf("User registred with success!,id: %s", userDomain.GetId()), zap.String("journey", "CreateAccount Controller"))
 	c.Status(http.StatusCreated)
 }

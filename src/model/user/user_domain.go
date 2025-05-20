@@ -8,6 +8,7 @@ type user struct {
 	category string
 	earnings int
 	cpf      string
+	session_id string
 }
 
 func (u *user) GetId() string {
@@ -65,3 +66,12 @@ func (u *user) GetCPF() string {
 func (u *user) SetCPF(cpf string) {
 	u.cpf = cpf
 }
+
+func (u *user) GetSessionId() string {
+	return u.session_id
+}
+
+func (u *user) SetSessionId(sessionId string) {
+	u.session_id = sessionId
+}
+

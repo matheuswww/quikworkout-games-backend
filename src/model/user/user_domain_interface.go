@@ -15,9 +15,11 @@ type UserDomainInterface interface {
 	SetEarnings(int)
 	GetCPF() string
 	SetCPF(string)
+	GetSessionId() string
+	SetSessionId(string)
 }
 
-func NewUserDomain(id, name, userName string, dob, category string, earnings int, cpf string) UserDomainInterface {
+func NewUserDomain(id, name, userName string, dob, category string, earnings int, cpf, sessionId string) UserDomainInterface {
 	return &user{
 		id:       id,		
 		name: 		name,
@@ -26,5 +28,6 @@ func NewUserDomain(id, name, userName string, dob, category string, earnings int
 		category: category,
 		earnings: earnings,
 		cpf:      cpf,
+		session_id: sessionId,
 	}
 }
