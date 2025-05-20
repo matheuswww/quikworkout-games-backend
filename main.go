@@ -14,6 +14,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
+	model_util "github.com/matheuswww/quikworkout-games-backend/src/model/util"
 	"github.com/matheuswww/quikworkout-games-backend/src/routes"
 )
 
@@ -32,6 +33,7 @@ func main() {
 	router := gin.Default()
 	corsConfig := loadCors()
 	mysql := loadMysql()
+	model_util.InitDb(mysql)
 	router.Use(cors.New(*corsConfig))
 	router.Static("/images", "./images")
 	routes.InitRoutes(&router.RouterGroup, mysql)

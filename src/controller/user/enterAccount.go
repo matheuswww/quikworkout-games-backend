@@ -10,6 +10,7 @@ import (
 	user_games_cookie "github.com/matheuswww/quikworkout-games-backend/src/cookies/user/user_games"
 	user_proflie_cookie "github.com/matheuswww/quikworkout-games-backend/src/cookies/user/user_profile"
 	user_domain "github.com/matheuswww/quikworkout-games-backend/src/model/user"
+	model_util "github.com/matheuswww/quikworkout-games-backend/src/model/util"
 	"go.uber.org/zap"
 )
 
@@ -21,8 +22,13 @@ func (uc *userController) EnterAccount(c *gin.Context) {
 		restErr := rest_err.NewUnauthorizedError("cookie inválido")
 		c.JSON(restErr.Code, restErr)
 	}
+	restErr := model_util.CheckUser(cookie.SessionId, cookie.Id)
+	if restErr != nil {
+		c.JSON(restErr.Code, restErr)
+		return
+	}
 	userDomain := user_domain.NewUserDomain(cookie.Id, "", "", "", "", 0, "", "")
-	restErr := uc.userService.EnterAccount(userDomain)
+	restErr = uc.userService.EnterAccount(userDomain)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return
