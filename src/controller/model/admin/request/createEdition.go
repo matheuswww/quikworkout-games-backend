@@ -5,6 +5,7 @@ type CreateEdition struct {
 	ClosingDate  string `json:"closing_date" binding:"required" validate:"date"`
 	ClothingName string `json:"clothing_name" binding:"required,max=15"`
 	Rules				 string `json:"rules" binding:"required,max=300"`
+	Number       int    `json:"number" binding:"required"`
 	Tops         []Top  `json:"tops" binding:"required" validate:"dive"`
 }
 
