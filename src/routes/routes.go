@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	admin_router "github.com/matheuswww/quikworkout-games-backend/src/routes/admin"
+	edition_router "github.com/matheuswww/quikworkout-games-backend/src/routes/edition"
 	user_router "github.com/matheuswww/quikworkout-games-backend/src/routes/user"
 )
 
@@ -21,4 +22,5 @@ func InitRoutes(r *gin.RouterGroup, database *sql.DB) {
 
 	user_router.InitUserRoutes(r, database)
 	admin_router.InitAdminRoutes(r, database)
+	edition_router.InitEditionRoutes(r, database)
 }
