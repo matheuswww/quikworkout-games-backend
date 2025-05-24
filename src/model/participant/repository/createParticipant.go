@@ -21,7 +21,7 @@ func (cr *participantRepository) CreateParticipant(participantDomain participant
 		return rest_err.NewInternalServerError("server error")
 	}
 
-	query := "INSERT INTO participant (video_id, user_id, edition_id, active) VALUES (?, ?, ?, ?)"
+	query := "INSERT INTO participant (video_id, user_id, edition_id, checked) VALUES (?, ?, ?, ?)"
 	_,err = tx.ExecContext(ctx, query, participantDomain.GetVideoID(), participantDomain.GetUserID(), participantDomain.GetEditionID(), participantDomain.GetChecked())
 	if err != nil {
 		logger.Error("Error trying ExecContext", err, zap.String("journey", "CreateParticiapnt Repository"))
