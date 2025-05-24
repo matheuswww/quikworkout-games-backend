@@ -21,6 +21,10 @@ func (pr *participantRepository) GetParticipant(editionID, userId, cursor_create
 		query := "SELECT edition_id FROM edition ORDER BY created_at DESC LIMIT 1"
 		err := pr.mysql.QueryRowContext(ctx, query).Scan(&edition_id)
 		if err != nil {
+			if err == sql.ErrNoRows {
+				logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipant Repository"))
+				return nil,rest_err.NewBadRequestError("no edition found")
+			}
 			logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipant Repository"))
 			return nil, rest_err.NewInternalServerError("server error")
 		}
@@ -29,7 +33,7 @@ func (pr *participantRepository) GetParticipant(editionID, userId, cursor_create
 
 	var args []any
 	args = append(args, editionID)
-	query := "SELECT p.video_id, u.user_id, u.name, u.user, p.user_time, p.created_at FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id WHERE p.edition_id = ? AND "
+	query := "SELECT p.video_id, u.user_id, u.name, u.user, p.user_time, p.created_at FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id WHERE p.edition_id = ? AND p.checked IS true AND desqualified IS NULL AND "
 	if userId != "" {
 		query += "p.user_id = ? AND "
 		args = append(args, userId)
