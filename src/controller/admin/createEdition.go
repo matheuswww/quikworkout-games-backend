@@ -17,6 +17,13 @@ import (
 
 func (ac *adminController) CreateEdition(c *gin.Context) {
 	logger.Info("Init CreateEdition", zap.String("journey", "CreateEdition Controller"))
+	_, err := admin_profile_cookie.GetAdminProfileValues(c)
+	if err != nil {
+		logger.Error("Erro trying get cookie", err, zap.String("journey", "PayOrder Controller"))
+		restErr := rest_err.NewUnauthorizedError("cookie inválido")
+		c.JSON(restErr.Code, restErr)
+		return
+	}
 	var createEdition admin_request.CreateEdition
 	if err := c.ShouldBindJSON(&createEdition); err != nil {
 		logger.Error("Error trying convert fileds", errors.New("invalid fields"), zap.String("journey", "CreateEdition controller"))
@@ -28,13 +35,6 @@ func (ac *adminController) CreateEdition(c *gin.Context) {
 	if customErr != nil {
 		restErr := custom_validator.HandleCustomValidatorErrors(translator, customErr)
 		logger.Error("Error trying convert fields", errors.New("invalid fields"), zap.String("journey", "CreateEdition Controller"))
-		c.JSON(restErr.Code, restErr)
-		return
-	}
-	_, err := admin_profile_cookie.GetAdminProfileValues(c)
-	if err != nil {
-		logger.Error("Erro trying get cookie", err, zap.String("journey", "PayOrder Controller"))
-		restErr := rest_err.NewUnauthorizedError("cookie inválido")
 		c.JSON(restErr.Code, restErr)
 		return
 	}
