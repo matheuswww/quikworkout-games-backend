@@ -20,6 +20,13 @@ import (
 
 func (uc *userController) CreateAccount(c *gin.Context) {
 	logger.Info("Init CreateAccount")
+	cookie, err := user_proflie_cookie.GetUserProfileCookieValues(c)
+	if err != nil {
+		logger.Error("Erro trying get cookie", err, zap.String("journey", "PayOrder Controller"))
+		restErr := rest_err.NewUnauthorizedError("cookie inválido")
+		c.JSON(restErr.Code, restErr)
+		return
+	}
 	var createAccountRequest user_request.CreateAccount
 	if err := c.ShouldBindJSON(&createAccountRequest); err != nil {
 		logger.Error("Error trying convert fileds", errors.New("invalid fields"), zap.String("journey", "CreateAccount Controller"))
@@ -30,14 +37,8 @@ func (uc *userController) CreateAccount(c *gin.Context) {
 	translator, customErr := get_custom_validator.CustomValidator(createAccountRequest)
 	if customErr != nil {
 		restErr := custom_validator.HandleCustomValidatorErrors(translator, customErr)
+		fmt.Println(restErr.Causes)
 		logger.Error("Error trying convert fields", errors.New("invalid fields"), zap.String("journey", "CreateAccount Controller"))
-		c.JSON(restErr.Code, restErr)
-		return
-	}
-	cookie, err := user_proflie_cookie.GetUserProfileCookieValues(c)
-	if err != nil {
-		logger.Error("Erro trying get cookie", err, zap.String("journey", "PayOrder Controller"))
-		restErr := rest_err.NewUnauthorizedError("cookie inválido")
 		c.JSON(restErr.Code, restErr)
 		return
 	}
