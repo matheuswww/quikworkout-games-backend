@@ -2,6 +2,7 @@ package participant_repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
@@ -20,6 +21,10 @@ func (pr *participantRepository) IsValidRegistrationForEdition(participantDomain
 	query := "SELECT edition_id, start_date, closing_date FROM edition ORDER BY created_at DESC LIMIT 1"
 	err := pr.mysql.QueryRowContext(ctx, query).Scan(&edition_id, &start_date, &closing_date)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.Error("Error trying QueryRowContext", err, zap.String("journey", "IsValidRegistrationForEdition Repository"))
+			return rest_err.NewBadRequestError("no edition found")
+		}
 		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "IsValidRegistrationForEdition Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
