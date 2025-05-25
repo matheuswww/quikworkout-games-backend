@@ -16,4 +16,3 @@ type User struct {
 	User     string `json:"user"`
 	UserTime any    `json:"userTime"`
 }
-

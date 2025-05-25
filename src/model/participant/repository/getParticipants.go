@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
@@ -13,7 +14,7 @@ import (
 )
 
 func (pr *participantRepository) GetParticipants(editionID, cursor_createdAt, cursor_userTime string, worstTime bool) ([]participant_response.Participant, *rest_err.RestErr) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
 	if editionID == "" {
@@ -56,8 +57,8 @@ func (pr *participantRepository) GetParticipants(editionID, cursor_createdAt, cu
 		query += "p.user_time DESC, "
 	}
 	query += "p.created_at DESC "
-	query += "LIMIT 2"
-
+	query += "LIMIT 10"
+	fmt.Println(query)
 	rows, err := pr.mysql.QueryContext(ctx, query, args...)
 	if err != nil {
 		logger.Error("Error trying QueryContext", err, zap.String("journey", "GetParticipant Repository"))
