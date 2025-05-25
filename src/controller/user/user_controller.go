@@ -19,4 +19,5 @@ type UserController interface {
 	CreateAccount(c *gin.Context)
 	EnterAccount(c *gin.Context)
 	GetAccount(c *gin.Context)
+	GetParticipations(c *gin.Context)
 }

@@ -28,6 +28,7 @@ func InitUserRoutes(r *gin.RouterGroup, database *sql.DB) {
 	r.POST("/account/createAccount", userController.CreateAccount)
 	r.POST("/account/enterAccount", userController.EnterAccount)
 	r.GET("/account/getAccount", userController.GetAccount)
+	r.GET("/account/getParticipations", userController.GetParticipations)
 }
 
 func initUserRoutes(database *sql.DB) user_controller.UserController {

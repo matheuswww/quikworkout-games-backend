@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (pr *participantRepository) GetParticipant(editionID, userId, cursor_createdAt, cursor_userTime string, worstTime bool) ([]participant_response.Participant, *rest_err.RestErr) {
+func (pr *participantRepository) GetParticipants(editionID, cursor_createdAt, cursor_userTime string, worstTime bool) ([]participant_response.Participant, *rest_err.RestErr) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -34,10 +34,6 @@ func (pr *participantRepository) GetParticipant(editionID, userId, cursor_create
 	var args []any
 	args = append(args, editionID)
 	query := "SELECT p.video_id, u.user_id, u.name, u.user, p.user_time, p.created_at FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id WHERE p.edition_id = ? AND p.checked IS true AND desqualified IS NULL AND "
-	if userId != "" {
-		query += "p.user_id = ? AND "
-		args = append(args, userId)
-	}
 	if cursor_createdAt != "" {
 		query += "p.created_at <= ? AND "
 		args = append(args, cursor_createdAt)
@@ -99,5 +95,4 @@ func (pr *participantRepository) GetParticipant(editionID, userId, cursor_create
 	}
 	
 	return participants, nil
-
 }

@@ -74,7 +74,7 @@ func (er *editionRepository) GetEdition(number int, cursor string) ([]edition_do
 		editionDomain = append(editionDomain, edition)
 	}
 	if len(editionDomain) == 0 {
-		return nil, rest_err.NewBadRequestError("nenhuma edição foi encontrada")
+		return nil, rest_err.NewBadRequestError("no edition found")
 	}
 	return editionDomain, nil
 }

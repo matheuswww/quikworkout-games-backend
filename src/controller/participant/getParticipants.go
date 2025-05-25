@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (pc *participantController) GetParticipant(c *gin.Context) {
+func (pc *participantController) GetParticipants(c *gin.Context) {
 	logger.Info("Init GetParticiapant", zap.String("journey", "GetParticipant Repository"))
 	var getParticipartRequest participant_request.GetParticipant
 	if err := c.ShouldBindQuery(&getParticipartRequest); err != nil {
