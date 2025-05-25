@@ -37,5 +37,6 @@ func (ac *adminController) DesqualifyVideo(c *gin.Context) {
 		return
 	}
 
+	logger.Info("Video desqualified! video_id: "+desqualifyVideoRequest.VideoID, zap.String("journey", "DesqualifyVideo Controller"))
 	c.Status(http.StatusOK)
 }

@@ -43,5 +43,6 @@ func (ac *adminController) CreateEdition(c *gin.Context) {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
+	logger.Info("Edition created!", zap.String("journey", "CreateEdition Controller"))
 	c.Status(http.StatusCreated)
 }

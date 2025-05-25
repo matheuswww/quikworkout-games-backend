@@ -42,6 +42,6 @@ func (uc *userController) EnterAccount(c *gin.Context) {
 		return
 	}
 	c.Header("Access-Control-Expose-Headers", "Set-Cookie")
-	logger.Info(fmt.Sprintf("success!,id: %s", userDomain.GetId()), zap.String("journey", "EnterAccount Controller"))
+	logger.Info(fmt.Sprintf("EnterAccount success!,id: %s", userDomain.GetId()), zap.String("journey", "EnterAccount Controller"))
 	c.Status(http.StatusOK)
 }

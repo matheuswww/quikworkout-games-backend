@@ -36,5 +36,6 @@ func (ac *adminController) CheckVideo(c *gin.Context) {
 		return
 	}
 
+	logger.Info("Video checekd! User_id: "+checkVideoRequest.VideoID, zap.String("journey", "CheckVideo Controller"))
 	c.Status(http.StatusOK)
 }

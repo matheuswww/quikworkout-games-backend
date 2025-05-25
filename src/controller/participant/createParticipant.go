@@ -47,6 +47,7 @@ func (pc *participantController) CreateParticipant(c *gin.Context) {
 		return
 	}
 
+	logger.Info("Participant created! user_id: "+cookie.Id, zap.String("journey", "CreateParticipant Controller"))
 	c.JSON(http.StatusOK, participant_response.CreateParticipant{
 		Form: form,
 	})
