@@ -18,4 +18,5 @@ type adminController struct {
 
 type AdminController interface {
 	CreateEdition(c *gin.Context)
+	GetParticipants(c *gin.Context)
 }
