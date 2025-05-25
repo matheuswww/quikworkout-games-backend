@@ -1,7 +1,7 @@
 package admin_request
 
 type GetParticipants struct {
-	EditionID       string `json:"edition_id"`
-	CursorCreatedAt string `json:"cursor_createdAt"`
-	CursorUserTime  string `json:"cursor_userTime"`
+	EditionID       string `form:"edition_id"`
+	CursorCreatedAt string `form:"cursor_createdAt"`
+	CursorUserTime  string `form:"cursor_userTime"`
 }

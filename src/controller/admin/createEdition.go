@@ -19,7 +19,7 @@ func (ac *adminController) CreateEdition(c *gin.Context) {
 	logger.Info("Init CreateEdition", zap.String("journey", "CreateEdition Controller"))
 	_, err := admin_profile_cookie.GetAdminProfileValues(c)
 	if err != nil {
-		logger.Error("Erro trying get cookie", err, zap.String("journey", "PayOrder Controller"))
+		logger.Error("Erro trying get cookie", err, zap.String("journey", "CreateEdition Controller"))
 		restErr := rest_err.NewUnauthorizedError("cookie inválido")
 		c.JSON(restErr.Code, restErr)
 		return

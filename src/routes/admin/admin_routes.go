@@ -26,6 +26,7 @@ func InitAdminRoutes(r *gin.RouterGroup, database *sql.DB) {
 
 	r.POST("/manager-quikworkout/createEdition", adminController.CreateEdition)
 	r.GET("/manager-quikworkout/getParticipants", adminController.GetParticipants)
+	r.POST("/manager-quikworkout/checkVideo", adminController.CheckVideo)
 }
 
 func initAdminRoutes(database *sql.DB) admin_controller.AdminController {
