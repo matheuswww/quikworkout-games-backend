@@ -20,4 +20,5 @@ type AdminController interface {
 	CreateEdition(c *gin.Context)
 	GetParticipants(c *gin.Context)
 	CheckVideo(c *gin.Context)
+	DesqualifyVideo(c *gin.Context)
 }

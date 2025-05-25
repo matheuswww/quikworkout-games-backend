@@ -22,4 +22,5 @@ type AdminRepository interface {
 	CreateEdition(createEditionRequest *admin_request.CreateEdition) *rest_err.RestErr
 	GetParticipants(editionID, cursor_createdAt, cursor_userTime string) ([]admin_response.Participant, *rest_err.RestErr)
 	CheckVideo(videoID string) *rest_err.RestErr
+	DesqualifyVideo(videoID, desqualifed string) *rest_err.RestErr
 }
