@@ -33,7 +33,7 @@ func (pr *participantRepository) GetParticipants(editionID, cursor_createdAt, cu
 
 	var args []any
 	args = append(args, editionID)
-	query := "SELECT p.video_id, u.user_id, u.name, u.user, p.user_time, p.placing, p.created_at FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id WHERE p.edition_id = ? AND p.checked IS true AND desqualified IS NULL AND "
+	query := "SELECT p.video_id, u.user_id, u.name, u.user, p.user_time, p.created_at FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id WHERE p.edition_id = ? AND p.checked IS true AND desqualified IS NULL AND "
 	if cursor_createdAt != "" {
 		query += "p.created_at <= ? AND "
 		args = append(args, cursor_createdAt)
@@ -67,24 +67,19 @@ func (pr *participantRepository) GetParticipants(editionID, cursor_createdAt, cu
 	var participants []participant_response.Participant
 	for rows.Next() {
 		var video_id, user_id, name, user, created_at string
-		var userTime, placing sql.NullString
-		err = rows.Scan(&video_id, &user_id, &name, &user, &userTime, &placing, &created_at)
+		var userTime sql.NullString
+		err = rows.Scan(&video_id, &user_id, &name, &user, &userTime, &created_at)
 		if err != nil {
 			logger.Error("Error trying Scan", err, zap.String("journey", "GetParticipant Repository"))
 			return nil, rest_err.NewInternalServerError("server error")
 		}
 		var userTimeValid any = nil
-		var placingValid any = nil
-		if placing.Valid {
-			placingValid = placing.String
-		}
 		if userTime.Valid {
 			userTimeValid = userTime.String
 		}
 		participants = append(participants, participant_response.Participant{
 			Video: video_id,
 			UserTime: userTimeValid,
-			Placing: placingValid,
 			User: participant_response.User{
 				UserId: user_id,
 				Name: name,
