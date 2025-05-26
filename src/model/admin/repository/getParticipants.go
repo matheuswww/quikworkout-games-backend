@@ -45,7 +45,7 @@ func (ar *adminRepository) GetParticipants(editionID, cursor_createdAt, cursor_u
 	}
 	query = query[:len(query) - 4]
 
-	query += "ORDER BY p.user_time IS NOT NULL, p.user_time ASC, p.created_at DESC LIMIT 10"
+	query += "ORDER BY p.desqualified ASC, p.user_time IS NOT NULL, p.user_time ASC, p.created_at DESC LIMIT 10"
 
 	rows, err := ar.mysql.QueryContext(ctx, query, args...)
 	if err != nil {
