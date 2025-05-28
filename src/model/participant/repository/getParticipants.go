@@ -35,13 +35,13 @@ func (pr *participantRepository) GetParticipants(editionID, cursor_createdAt, cu
 	args = append(args, editionID)
 	query := "SELECT p.video_id, u.user_id, u.name, u.user, p.user_time, p.created_at FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id WHERE p.edition_id = ? AND p.checked IS true AND desqualified IS NULL AND "
 	if cursor_createdAt != "" {
-		query += "p.created_at <= ? AND "
+		query += "p.created_at < ? AND "
 		args = append(args, cursor_createdAt)
 	}
 	if cursor_userTime != "" {
-		signal := ">= ?"
+		signal := "> ?"
 		if worstTime {
-			signal = "<= ?"
+			signal = "< ?"
 		}
 		query += "(p.user_time "+signal+" OR p.user_time IS NULL) AND "
 		args = append(args, cursor_userTime)

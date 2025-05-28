@@ -26,6 +26,7 @@ func InitCommentRoutes(r *gin.RouterGroup, database *sql.DB) {
 	r.Use(sessions.SessionsMany(sessionNames, cookieStore))
 
 	r.POST("/comment/createComment", commentController.CreateComment)
+	r.GET("/comment/getComment", commentController.GetComment)
 }
 
 func initCommentRoutes(database *sql.DB) comment_controller.CommentController {

@@ -11,6 +11,7 @@ type commentController struct {
 
 type CommentController interface {
 	CreateComment(c *gin.Context)
+	GetComment(c *gin.Context)
 }
 
 func NewCommentController(commentService comment_service.CommentService) CommentController {

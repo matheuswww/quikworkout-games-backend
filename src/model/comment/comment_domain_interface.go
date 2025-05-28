@@ -7,6 +7,8 @@ type CommentDomainInterface interface {
 	SetVideoId(string)
 	GetParentId() string
 	SetParentId(string)
+	GetAnswerId() string
+	SetAnswerId(string)
 	GetUserId() string
 	SetUserId(string)
 	GetVideoComment() string
@@ -16,13 +18,14 @@ type CommentDomainInterface interface {
 }
 
 func NewCommentDomain(
-	commentId, videoId, parentId, userId, videoComment,
+	commentId, videoId, parentId, answerId, userId, videoComment,
 	createdAt string,
 ) CommentDomainInterface {
 	return &comment{
 		commentId:    commentId,
 		videoId:      videoId,
 		parentId:     parentId,
+		answerId: 		answerId,
 		userId:       userId,
 		videoComment: videoComment,
 		createdAt:    createdAt,
