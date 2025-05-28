@@ -4,9 +4,9 @@ type comment struct {
 	commentId    string
 	videoId      string
 	parentId     string
+	answerId       string
 	userId       string
 	videoComment string
-	userAnswered string
 	createdAt    string
 }
 
@@ -32,6 +32,14 @@ func (c *comment) GetParentId() string {
 
 func (c *comment) SetParentId(id string) {
 	c.parentId = id
+}
+
+func (c *comment) GetAnswerId() string {
+	return c.answerId
+}
+
+func (c *comment) SetAnswerId(id string) {
+	c.answerId = id
 }
 
 func (c *comment) GetUserId() string {

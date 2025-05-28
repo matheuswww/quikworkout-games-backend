@@ -17,10 +17,16 @@ func (cr *commentRepository) CreateComment(comment comment_domain.CommentDomainI
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
+	if comment.GetAnswerId() != "" && comment.GetParentId() == "" {
+		logger.Error("Error trying to create comment", errors.New("parent_id is empty"), zap.String("journey", "CreateComment Repository"))
+		return rest_err.NewBadRequestError("parent_id is empty")
+	}
+
 	if comment.GetParentId() != "" {
-		var video_id string
-		query := "SELECT video_id FROM comment WHERE comment_id = ?"
-		err := cr.mysql.QueryRowContext(ctx, query, comment.GetParentId()).Scan(&video_id)
+		var video_id, comment_id string
+		var parent_id sql.NullString 
+		query := "SELECT video_id, comment_id, parent_id FROM comment WHERE comment_id = ?"
+		err := cr.mysql.QueryRowContext(ctx, query, comment.GetParentId()).Scan(&video_id, &comment_id, &parent_id)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				logger.Error("Error comment not found", errors.New("comment not found"), zap.String("journey", "CreateComment Repository"))
@@ -28,6 +34,32 @@ func (cr *commentRepository) CreateComment(comment comment_domain.CommentDomainI
 			}
 			logger.Error("Error trying QueryRowContext", err, zap.String("journey", "CreateComment Repository"))
 			return rest_err.NewInternalServerError("server error")
+		}
+		if parent_id.Valid {
+			logger.Error("Error trying to create comment", errors.New("invalid parent_id"), zap.String("journey", "CreateComment Repository"))
+			return rest_err.NewBadRequestError("invalid parent_id")
+		} 
+		if comment.GetAnswerId() != "" {
+			var user_id string
+			var parent_id sql.NullString
+			query := "SELECT user_id, parent_id FROM comment WHERE comment_id = ?"
+			err := cr.mysql.QueryRowContext(ctx, query, comment.GetAnswerId()).Scan(&user_id, &parent_id)
+			if err != nil {
+				if err == sql.ErrNoRows {
+					logger.Error("Error comment not found", errors.New("comment not found"), zap.String("journey", "CreateComment Repository"))
+					return rest_err.NewNotFoundError("answer comment not found")
+				}
+				logger.Error("Error trying QueryRowContext", err, zap.String("journey", "CreateComment Repository"))
+				return rest_err.NewInternalServerError("server error")
+			}
+			if user_id == comment.GetUserId() {
+				logger.Error("Error trying to create comment", errors.New("invalid answer_id"), zap.String("journey", "CreateComment Repository"))
+				return rest_err.NewBadRequestError("invalid answer_id")
+			}
+			if parent_id.Valid && parent_id.String != comment.GetParentId() {
+				logger.Error("Error trying to create comment", errors.New("invalid answer_id"), zap.String("journey", "CreateComment Repository"))
+				return rest_err.NewBadRequestError("invalid answer_id")
+			}
 		}
 		comment.SetVideoId(video_id)
 	} else {
@@ -51,11 +83,15 @@ func (cr *commentRepository) CreateComment(comment comment_domain.CommentDomainI
 	commentId := uuid.NewString()
 	comment.SetCommentId(commentId)
 	var parentId any = comment.GetParentId()
+	var answerId any = comment.GetAnswerId()
+	if comment.GetAnswerId() == "" {
+		answerId = nil
+	}
 	if comment.GetParentId() == "" {
 		parentId = nil
 	}
-	query := "INSERT INTO comment (comment_id, video_id, parent_id, user_id, video_comment) VALUES (?, ?, ?, ?, ?)"
-	_,err := cr.mysql.ExecContext(ctx, query, comment.GetCommentId(), comment.GetVideoId(),  parentId, comment.GetUserId(), comment.GetVideoComment())
+	query := "INSERT INTO comment (comment_id, video_id, parent_id, answer_id, user_id, video_comment) VALUES (?, ?, ?, ?, ?, ?)"
+	_,err := cr.mysql.ExecContext(ctx, query, comment.GetCommentId(), comment.GetVideoId(),  parentId, answerId, comment.GetUserId(), comment.GetVideoComment())
 	if err != nil {
 		logger.Error("Error trying ExecContext", err, zap.String("journey", "CreateComment Repository"))
 		return rest_err.NewInternalServerError("server error")

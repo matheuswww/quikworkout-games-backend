@@ -32,7 +32,7 @@ func (cc *commentController) CreateComment(c *gin.Context) {
 		return
 	}
 
-	commentDomain := comment_domain.NewCommentDomain("", createCommentRequest.VideoId, createCommentRequest.ParentId, cookie.Id, createCommentRequest.VideoComment, "")
+	commentDomain := comment_domain.NewCommentDomain("", createCommentRequest.VideoId, createCommentRequest.ParentId, createCommentRequest.AnswerId, cookie.Id, createCommentRequest.VideoComment, "")
 	restErr := cc.commentService.CreateComment(commentDomain)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
