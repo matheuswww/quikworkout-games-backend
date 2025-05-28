@@ -14,18 +14,24 @@ type EditionDomainInterface interface {
 	SetClosingDate(string)
 	GetRules() string
 	SetRules(string)
+	GetChallenge() string
+	SetChallenge(string)
+	GetNumber() int
+	SetNumber(int)
 	GetTops() []Top
 	SetTops([]Top)
 	GetCreatedAt() string
 	SetCreatedAt(string)
 }
 
-func NewEditionDomain(id, startDate, closingDate, rules string, tops []Top, created_at string) EditionDomainInterface {
+func NewEditionDomain(id, startDate, closingDate, rules, challenge string, tops []Top, number int, created_at string) EditionDomainInterface {
 	return &edition{
 		id: 				 id,
 		startDate:   startDate,
 		closingDate: closingDate,
 		rules:       rules,
+		challenge:   challenge,
+		number: 		 number,
 		tops:        tops,
 		created_at: created_at,
 	}

@@ -5,6 +5,8 @@ type edition struct {
 	startDate   string
 	closingDate string
 	rules       string
+	challenge	  string
+	number      int
 	tops        []Top
 	created_at  string
 }
@@ -39,6 +41,22 @@ func (e *edition) GetRules() string {
 
 func (e *edition) SetRules(r string) {
 	e.rules = r
+}
+
+func (e *edition) GetChallenge() string {
+	return e.challenge
+}
+
+func (e *edition) SetChallenge(r string) {
+	e.challenge = r
+}
+
+func (e *edition) GetNumber() int {
+	return e.number
+}
+
+func (e *edition) SetNumber(r int) {
+	e.number = r
 }
 
 func (e *edition) GetTops() []Top {

@@ -41,6 +41,8 @@ func (ec *editionController) GetEdition(c *gin.Context) {
 			StartDate: edition.GetStartDate(),
 			ClosingDate: edition.GetClosingDate(),
 			Rules: edition.GetRules(),
+			Challenge: edition.GetChallenge(),
+			Number: edition.GetNumber(),
 			Tops: tops,
 			CreatedAt: edition.GetCreatedAt(),
 		})

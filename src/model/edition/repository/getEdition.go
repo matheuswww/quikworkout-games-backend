@@ -15,7 +15,7 @@ func (er *editionRepository) GetEdition(number int, cursor string) ([]edition_do
 	defer cancel()
 	var args []any
 
-	query := "SELECT e.edition_id, e.start_date, e.closing_date, e.rules, t.top, t.gain, e.created_at FROM (SELECT edition_id, start_date, closing_date, rules, created_at FROM edition "
+	query := "SELECT e.edition_id, e.start_date, e.closing_date, e.rules, e.challenge, e.number, t.top, t.gain, e.created_at FROM (SELECT edition_id, start_date, closing_date, rules, challenge, number, created_at FROM edition "
 	if number != 0 || cursor != "" {
 		query += "WHERE "
 	}
@@ -48,9 +48,9 @@ func (er *editionRepository) GetEdition(number int, cursor string) ([]edition_do
 	var prevId string
 
 	for rows.Next() {
-		var id, start_date, closing_date, rules, created_at string
-		var gain, top int
-		err := rows.Scan(&id, &start_date, &closing_date, &rules, &gain, &top, &created_at)
+		var id, start_date, closing_date, rules, challenge, created_at string
+		var gain, top, number int
+		err := rows.Scan(&id, &start_date, &closing_date, &rules, &challenge, &number, &gain, &top, &created_at)
 		if err != nil {
 			logger.Error("Error trying scan row", err, zap.String("journey", "GetEdition Repository"))
 			return nil, rest_err.NewInternalServerError("server error")
@@ -60,7 +60,7 @@ func (er *editionRepository) GetEdition(number int, cursor string) ([]edition_do
 				edition.SetTops(tops)
 				editionDomain = append(editionDomain, edition)
 			}
-			edition = edition_domain.NewEditionDomain(id, start_date, closing_date, rules, nil, created_at)
+			edition = edition_domain.NewEditionDomain(id, start_date, closing_date, rules, challenge, nil, number, created_at)
 			tops = nil
 		}
 		tops = append(tops, edition_domain.Top{

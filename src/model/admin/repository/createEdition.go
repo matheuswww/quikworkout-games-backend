@@ -47,8 +47,8 @@ func (ar *adminRepository) CreateEdition(createEditionRequest *admin_request.Cre
 	}
 
 	id := uuid.NewString()
-	query = "INSERT INTO edition (number, edition_id, start_date, closing_date, rules, clothing_id) VALUES (?, ?, ?, ?, ?, ?)"
-	_, err = tx.ExecContext(ctx, query, createEditionRequest.Number, id, createEditionRequest.StartDate, createEditionRequest.ClosingDate, createEditionRequest.Rules, clothing_id)
+	query = "INSERT INTO edition (number, edition_id, start_date, closing_date, rules, challenge, clothing_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
+	_, err = tx.ExecContext(ctx, query, createEditionRequest.Number, id, createEditionRequest.StartDate, createEditionRequest.ClosingDate, createEditionRequest.Rules, createEditionRequest.Challenge, clothing_id)
 	if err != nil {
 		logger.Error("Error trying ExecContext", err, zap.String("journey", "CreateEdition Repository"))
 		err = tx.Rollback()
