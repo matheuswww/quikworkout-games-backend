@@ -76,7 +76,7 @@ func (cr *commentRepository) CreateComment(comment comment_domain.CommentDomainI
 		}
 		if count == 0 {
 			logger.Error("Error video not found", errors.New("video not found"), zap.String("journey", "CreateComment Repository"))
-			return rest_err.NewNotFoundError("video not found")
+			return rest_err.NewBadRequestError("video not found")
 		}
 	}
 	

@@ -24,7 +24,7 @@ func (ar *adminRepository) GetParticipants(editionID, cursor_createdAt, cursor_u
 		if err != nil {
 			if err == sql.ErrNoRows {
 				logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipants Repository"))
-				return nil,rest_err.NewBadRequestError("no edition found")
+				return nil,rest_err.NewNotFoundError("no edition found")
 			}
 			logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipants Repository"))
 			return nil, rest_err.NewInternalServerError("server error")
@@ -94,7 +94,7 @@ func (ar *adminRepository) GetParticipants(editionID, cursor_createdAt, cursor_u
 
 	if len(participants) == 0 {
 		logger.Error("Error trying get participants", errors.New("not found"), zap.String("journey", "GetParticipants Repository"))
-		return nil, rest_err.NewBadRequestError("no participants were found")
+		return nil, rest_err.NewNotFoundError("no participants were found")
 	}
 	
 	return participants, nil

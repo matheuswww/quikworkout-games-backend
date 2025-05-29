@@ -91,7 +91,7 @@ func (pr *participantRepository) GetParticipants(editionID, cursor_createdAt, cu
 
 	if len(participants) == 0 {
 		logger.Error("Error trying get participants", errors.New("not found"), zap.String("journey", "GetParticipant Repository"))
-		return nil, rest_err.NewBadRequestError("no participants were found")
+		return nil, rest_err.NewNotFoundError("no participants were found")
 	}
 	
 	return participants, nil

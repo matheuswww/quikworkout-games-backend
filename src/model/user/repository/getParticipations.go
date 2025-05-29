@@ -74,7 +74,7 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 	}
 
 	if len(participants) == 0 {
-		return nil, rest_err.NewBadRequestError("no participation was found")
+		return nil, rest_err.NewNotFoundError("no participation was found")
 	}
 	return &user_response.GetParticipations{
 		Participations: participants,
