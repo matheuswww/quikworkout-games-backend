@@ -11,6 +11,10 @@ func (ps *participantService) CreateParticipant(participantDomain participant_do
 	if restErr != nil {
 		return "", restErr
 	}
+	restErr = ps.HasTicket(participantDomain.GetUserID())
+	if restErr != nil {
+		return "", restErr
+	}
 	form, id, err := vimeo.UploadVideo(title, size)
 	if err != nil {
 		restErr := rest_err.NewInternalServerError("server error")

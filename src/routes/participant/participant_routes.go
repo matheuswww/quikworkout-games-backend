@@ -26,6 +26,7 @@ func InitParticipantRoutes(r *gin.RouterGroup, database *sql.DB) {
 	r.Use(sessions.SessionsMany(sessionNames, cookieStore))
 	r.POST("/participant/createParticipant", participantController.CreateParticipant)
 	r.GET("/participant/getParticipants", participantController.GetParticipant)
+	r.GET("/participant/hasTicket", participantController.HasTicket)
 }
 
 func initParticipantRoutes(database *sql.DB) participant_controller.ParticipantController {
