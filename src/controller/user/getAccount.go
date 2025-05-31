@@ -21,7 +21,7 @@ func (uc *userController) GetAccount(c *gin.Context) {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
-	userDomain := user_domain.NewUserDomain(cookie.Id, "", "", "", "", 0, "", "")
+	userDomain := user_domain.NewUserDomain(cookie.Id, "", "", "", 0, "", "")
 	restErr := uc.userService.GetAccount(userDomain, cookie.SessionId)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
@@ -30,7 +30,6 @@ func (uc *userController) GetAccount(c *gin.Context) {
 	c.JSON(http.StatusOK, user_response.GetAccount{
 		Name: userDomain.GetName(),
 		User: userDomain.GetUser(),
-		Dob: userDomain.GetDOB(),
 		Category: userDomain.GetCategory(),
 		Earnings: userDomain.GetEarnings(),
 	})

@@ -7,8 +7,6 @@ type UserDomainInterface interface {
 	SetName(string)
 	GetUser() string
 	SetUser(string)
-	GetDOB() string
-	SetDOB(string)
 	GetCategory() string
 	SetCategory(string)
 	GetEarnings() int
@@ -19,12 +17,12 @@ type UserDomainInterface interface {
 	SetSessionId(string)
 }
 
-func NewUserDomain(id, name, userName string, dob, category string, earnings int, cpf, sessionId string) UserDomainInterface {
+func NewUserDomain(id, name, userName string, category string, earnings int, cpf, sessionId string) UserDomainInterface {
 	return &user{
 		id:       id,		
 		name: 		name,
 		user:     userName,
-		dob:      dob,
+
 		category: category,
 		earnings: earnings,
 		cpf:      cpf,

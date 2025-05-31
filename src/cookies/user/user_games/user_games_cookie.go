@@ -2,6 +2,7 @@ package user_games_cookie
 
 import (
 	"errors"
+
 	"os"
 
 	"github.com/gin-contrib/sessions"
@@ -42,7 +43,7 @@ func GetUserGamesCookieValues(c *gin.Context) (UserGamesCookie, error) {
 	id := session.Get("id")
 	sessionId := session.Get("sessionId")
 	games := session.Get("games")
-	if id != nil && sessionId != nil {
+	if id != nil && sessionId != nil && games != nil {
 		return UserGamesCookie{
 			Id:        id.(string),
 			SessionId: sessionId.(string),

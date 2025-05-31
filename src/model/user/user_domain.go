@@ -4,7 +4,6 @@ type user struct {
 	id 			 string
 	name		 string
 	user     string
-	dob      string
 	category string
 	earnings int
 	cpf      string
@@ -33,14 +32,6 @@ func (u *user) GetUser() string {
 
 func (u *user) SetUser(user string) {
 	u.user = user
-}
-
-func (u *user) GetDOB() string {
-	return u.dob
-}
-
-func (u *user) SetDOB(dob string) {
-	u.dob = dob
 }
 
 func (u *user) GetCategory() string {

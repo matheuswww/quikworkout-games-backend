@@ -42,7 +42,7 @@ func (uc *userController) CreateAccount(c *gin.Context) {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
-	userDomain := user_domain.NewUserDomain(cookie.Id, "",  createAccountRequest.User, createAccountRequest.DOB, createAccountRequest.Category, 0, createAccountRequest.CPF, "")
+	userDomain := user_domain.NewUserDomain(cookie.Id, "",  createAccountRequest.User, createAccountRequest.Category, 0, createAccountRequest.CPF, "")
 	restErr := uc.userService.CreateAccount(userDomain, cookie.SessionId, createAccountRequest.Token)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)

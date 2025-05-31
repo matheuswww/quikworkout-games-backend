@@ -28,7 +28,7 @@ func (uc *userController) EnterAccount(c *gin.Context) {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
-	userDomain := user_domain.NewUserDomain(cookie.Id, "", "", "", "", 0, "", "")
+	userDomain := user_domain.NewUserDomain(cookie.Id, "", "", "", 0, "", "")
 	restErr = uc.userService.EnterAccount(userDomain)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
