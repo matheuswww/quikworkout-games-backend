@@ -5,6 +5,6 @@ import (
 	edition_domain "github.com/matheuswww/quikworkout-games-backend/src/model/edition"
 )
 
-func (us *editionService) GetEdition(number int, cursor string) ([]edition_domain.EditionDomainInterface, *rest_err.RestErr) {
-	return us.editionRepository.GetEdition(number, cursor)
+func (us *editionService) GetEdition(number, limit int, cursor string) ([]edition_domain.EditionDomainInterface, *rest_err.RestErr) {
+	return us.editionRepository.GetEdition(number, limit, cursor)
 }

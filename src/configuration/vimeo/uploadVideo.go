@@ -14,8 +14,8 @@ import (
 )
 
 type UploadRequest struct {
-	Name   	string  `json:"name"`
 	Upload 	upload  `json:"upload"`
+	Name   	string  `json:"name"`
 	Privacy privacy `json:"privacy"`
 }
 
@@ -47,7 +47,7 @@ func UploadVideo(name string, size int64) (string, string, error) {
 		},
 		Privacy: privacy{
 			Embed: "public",
-			View: "contacts",
+			View: "anybody",
 		},
 	}
 	jsonBytes, err := json.Marshal(jsonReq)

@@ -21,7 +21,7 @@ func (ec *editionController) GetEdition(c *gin.Context) {
 		return
 	}
 
-	editions, restErr := ec.editionService.GetEdition(getEditionRequest.Number, getEditionRequest.Cursor)
+	editions, restErr := ec.editionService.GetEdition(getEditionRequest.Number, getEditionRequest.Limit, getEditionRequest.Cursor)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return

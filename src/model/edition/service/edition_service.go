@@ -17,5 +17,5 @@ func NewEditionService(editionRepository edition_repository.EditionRepository) E
 }
 
 type EditionService interface {
-	GetEdition(number int, cursor string) ([]edition_domain.EditionDomainInterface, *rest_err.RestErr)
+	GetEdition(number, limit int, cursor string) ([]edition_domain.EditionDomainInterface, *rest_err.RestErr)
 }

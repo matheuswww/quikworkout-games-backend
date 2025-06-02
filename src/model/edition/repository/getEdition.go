@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (er *editionRepository) GetEdition(number int, cursor string) ([]edition_domain.EditionDomainInterface, *rest_err.RestErr) {
+func (er *editionRepository) GetEdition(number, limit int, cursor string) ([]edition_domain.EditionDomainInterface, *rest_err.RestErr) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 	var args []any
@@ -31,7 +31,11 @@ func (er *editionRepository) GetEdition(number int, cursor string) ([]edition_do
 	if len(args) > 0 {
 		query = query[:len(query) - 4]
 	}
-	query += "ORDER BY created_at DESC LIMIT 10) "
+	if limit > 10 || limit == 0 {
+		limit = 10
+	}
+	query += "ORDER BY created_at DESC LIMIT ?) "
+	args = append(args, limit)
 	query += "AS e JOIN top AS t ON t.edition_id = e.edition_id"
 
 	rows, err := er.mysql.QueryContext(ctx, query, args...)
@@ -74,7 +78,7 @@ func (er *editionRepository) GetEdition(number int, cursor string) ([]edition_do
 		editionDomain = append(editionDomain, edition)
 	}
 	if len(editionDomain) == 0 {
-		return nil, rest_err.NewBadRequestError("no edition found")
+		return nil, rest_err.NewNotFoundError("no edition found")
 	}
 	return editionDomain, nil
 }

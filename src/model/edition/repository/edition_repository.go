@@ -18,5 +18,5 @@ func NewEditionRepository(mysql *sql.DB) EditionRepository {
 }
 
 type EditionRepository interface {
-	GetEdition(number int, cursor string) ([]edition_domain.EditionDomainInterface, *rest_err.RestErr)
+	GetEdition(number, limit int, cursor string) ([]edition_domain.EditionDomainInterface, *rest_err.RestErr)
 }
