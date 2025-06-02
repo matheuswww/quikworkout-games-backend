@@ -40,7 +40,7 @@ func (uc *userController) GetParticipations(c *gin.Context) {
 	}
 
 	userDomain := user_domain.NewUserDomain(cookie.Id, "", "", "", 0, "", "")
-	participations, restErr := uc.userService.GetParticipations(userDomain, getParticipationsRequest.Cursor)
+	participations, restErr := uc.userService.GetParticipations(userDomain, &getParticipationsRequest)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return

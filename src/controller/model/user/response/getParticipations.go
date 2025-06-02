@@ -6,13 +6,16 @@ type GetParticipations struct {
 }
 
 type Participantion struct {
-	Video     		string   `json:"video"`
-	Edition   		int      `json:"edition"`
-	Placing   		any			 `json:"placing"`
-	UserTime  		any   	 `json:"user_time"`
-	Desqualified 	any   	 `json:"desqualified"`
-	Checked       bool 		 `json:"checked"`
-	CreatedAt 		string   `json:"createdAt"`
+	Video     		any   `json:"video"`
+	Title         any   `json:"title"`
+	ThumbnailUrl  any 	`json:"thumbnail_url"`
+	Edition   		int   `json:"edition"`
+	Gain   				any   `json:"gain"`
+	Placing   		any		`json:"placing"`
+	UserTime  		any   `json:"user_time"`
+	Desqualified 	any   `json:"desqualified"`
+	Checked       bool 	`json:"checked"`
+	CreatedAt 		string `json:"createdAt"`
 }
 
 type User struct {
