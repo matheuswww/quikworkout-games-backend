@@ -28,7 +28,7 @@ type GetVideoParams struct {
 	Background bool
 }
 
-func GetVideo(params GetVideoParams) (*GetVideoResponse, error) {
+func GetVideo(params GetVideoParams) (*GetVideoResponse, int, error) {
 	baseURL := "https://vimeo.com/api/oembed.json"
 
 	videoURL := fmt.Sprintf("https://vimeo.com/%s", params.VideoID)
@@ -54,31 +54,34 @@ func GetVideo(params GetVideoParams) (*GetVideoResponse, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		logger.Error("Error trying NewRequest", err, zap.String("journey", "GetVideo"))
-		return nil, err
+		return nil, 0, err
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		logger.Error("Error trying do request", err, zap.String("journey", "PutVideoFolder"))
-		return nil, err
+		return nil, 0, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.Error("Error trying ReadAll", err, zap.String("journey", "GetVideo"))
-		return nil, err
+		return nil, 0, err
 	}
 	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusNotFound {
+			return nil, resp.StatusCode, nil
+		}
 		logger.Error("Error trying GetVideo", errors.New(string(body)), zap.String("journey", "GetVideo"))
-		return nil, errors.New("failed to get video")
+		return nil, resp.StatusCode, errors.New("failed to get video")
 	}
 
 	var jsonResp GetVideoResponse
 	err = json.Unmarshal(body, &jsonResp)
 	if err != nil {
 		logger.Error("Error trying NewDecoder", err, zap.String("journey", "GetVideo"))
-		return nil, err
+		return nil, resp.StatusCode, err
 	}
 	
 	var thumbnailUrl string
@@ -111,5 +114,5 @@ func GetVideo(params GetVideoParams) (*GetVideoResponse, error) {
 	}
 	jsonResp.ThumbnailUrl = thumbnailUrl
 	
-	return &jsonResp, nil
+	return &jsonResp, resp.StatusCode, nil
 }
