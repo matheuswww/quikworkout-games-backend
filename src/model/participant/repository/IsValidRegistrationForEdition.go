@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"net/http"
 	"time"
 
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/rest_err"
+	"github.com/matheuswww/quikworkout-games-backend/src/configuration/vimeo"
 	participant_domain "github.com/matheuswww/quikworkout-games-backend/src/model/participant"
 	"go.uber.org/zap"
 )
@@ -44,19 +46,32 @@ func (pr *participantRepository) IsValidRegistrationForEdition(participantDomain
 		return rest_err.NewBadRequestError("is not possible to register")
 	}
 
-	var count int
-	query = "SELECT COUNT(*) FROM participant WHERE user_id = ? AND edition_id = ?"
-	err = pr.mysql.QueryRowContext(ctx, query, participantDomain.GetUserID(), participantDomain.GetEditionID()).Scan(&count)
+	var video_id string
+	query = "SELECT video_id FROM participant WHERE user_id = ? AND edition_id = ?"
+	err = pr.mysql.QueryRowContext(ctx, query, participantDomain.GetUserID(), participantDomain.GetEditionID()).Scan(&video_id)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil
+		}
 		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "IsValidRegistrationForEdition Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 
-	if count != 0  {
+	_, status, err := vimeo.GetVideo(vimeo.GetVideoParams{ VideoID: video_id })
+	if (status != http.StatusOK && status != http.StatusNotFound) {
+		logger.Error("Error trying GetVideo", err, zap.String("journey", "IsValidRegistrationForEdition Repository"))
+		return rest_err.NewInternalServerError("server error")
+	}
+	if status != http.StatusNotFound {
 		logger.Error("Error trying IsValidRegistrationForEdition", errors.New("user is already in editing"), zap.String("journey", "IsValidRegistrationForEdition Repository"))
 		return rest_err.NewBadRequestError("user is already in edition")
 	}
-
+	query = "DELETE FROM participant WHERE user_id = ? AND edition_id = ? AND video_id = ?"
+	_,err = pr.mysql.ExecContext(ctx, query, participantDomain.GetUserID(), participantDomain.GetEditionID(), video_id)
+	if err != nil {
+		logger.Error("Error trying ExecContext", err, zap.String("journey", "IsValidRegistrationForEdition Repository"))
+		return rest_err.NewInternalServerError("server error")
+	}
 	return nil
 }
 

@@ -22,5 +22,5 @@ type UserRepository interface {
 	CreateAccount(userDomain user_domain.UserDomainInterface, sessionIdFromCookie string) *rest_err.RestErr
 	EnterAccount(userDomain user_domain.UserDomainInterface) *rest_err.RestErr
 	GetAccount(userDomain user_domain.UserDomainInterface, sessionIdFromCookie string) *rest_err.RestErr
-	GetParticipations(user_domain user_domain.UserDomainInterface, cursor string) (*user_response.GetParticipations, *rest_err.RestErr)
+	GetParticipations(user_domain user_domain.UserDomainInterface, limit int, cursor string) (*user_response.GetParticipations, *sql.DB, *rest_err.RestErr)
 }

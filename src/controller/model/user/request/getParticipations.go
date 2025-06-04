@@ -6,4 +6,5 @@ type GetParticipations struct {
 	Autoplay   bool `form:"autoplay"`
 	Muted      bool	`form:"muted"`
 	Background bool	`form:"background"`
+	Limit      int  `form:"limit"`
 }

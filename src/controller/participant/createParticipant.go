@@ -39,7 +39,7 @@ func (pc *participantController) CreateParticipant(c *gin.Context) {
 		return
 	}
 
-	participant := participant_domain.NewParticipantDomain("", cookie.Id, "", nil, "", false)
+	participant := participant_domain.NewParticipantDomain("", cookie.Id, "", nil, "", false, false)
 
 	form, restErr := pc.participantService.CreateParticipant(participant, createParticipantRequest.Title, createParticipantRequest.Instagram, createParticipantRequest.Size)
 	if restErr != nil {
@@ -48,7 +48,7 @@ func (pc *participantController) CreateParticipant(c *gin.Context) {
 	}
 
 	logger.Info("Participant created! user_id: "+cookie.Id, zap.String("journey", "CreateParticipant Controller"))
-	c.JSON(http.StatusOK, participant_response.CreateParticipant{
+	c.JSON(http.StatusCreated, participant_response.CreateParticipant{
 		Form: form,
 	})
 }

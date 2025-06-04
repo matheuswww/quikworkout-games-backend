@@ -23,4 +23,5 @@ type ParticipantRepository interface {
 	IsValidRegistrationForEdition(participantDomain participant_domain.ParticipantDomainInterface) *rest_err.RestErr
 	GetParticipants(editionID, cursor_createdAt, cursor_userTime string, worstTime bool) ([]participant_response.Participant, *rest_err.RestErr)
 	HasTicket(cookieId string) ([]PaymentInfos, *rest_err.RestErr)
+	VideoSent(videoId, userId string) *rest_err.RestErr
 }

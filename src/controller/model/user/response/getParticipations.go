@@ -1,14 +1,17 @@
 package user_response
 
 type GetParticipations struct {
-	Participations []Participantion `json:"participations"`
-	User      		User     				  `json:"user"`
+	Participations  []Participantion `json:"participations"`
+	User      		  User     				 `json:"user"`
+	LastCreatedAt   string					 `json:"lastCreatedAt"`		
 }
 
 type Participantion struct {
 	Video     		any   `json:"video"`
 	Title         any   `json:"title"`
 	ThumbnailUrl  any 	`json:"thumbnail_url"`
+	VideoId       string `json:"video_id"`
+	Sent          bool  `json:"sent"`
 	Edition   		int   `json:"edition"`
 	Gain   				any   `json:"gain"`
 	Placing   		any		`json:"placing"`
