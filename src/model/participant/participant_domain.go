@@ -8,6 +8,7 @@ type participant struct {
 	editionID      string
 	userTime 			 *time.Time
 	checked				 bool
+	sent 					 bool
 	createdAt      string
 }
 
@@ -49,6 +50,14 @@ func (p *participant) GetChecked() bool {
 
 func (p *participant) SetChecked(a bool) {
 	p.checked = a
+}
+
+func (p *participant) GetSent() bool {
+	return p.sent
+}
+
+func (p *participant) SetSent(s bool) {
+	p.sent = s
 }
 
 func (p *participant) GetCreatedAt() string {

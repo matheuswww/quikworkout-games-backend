@@ -13,6 +13,8 @@ type ParticipantDomainInterface interface {
 	SetUserTime(*time.Time)
 	SetChecked(bool)
 	GetChecked() bool
+	SetSent(bool)
+	GetSent() bool
 	GetCreatedAt() string
 	SetCreatedAt(string)
 }
@@ -22,13 +24,15 @@ func NewParticipantDomain(
 	userTime *time.Time,
 	createdAt string,
 	checked bool,
+	sent bool,
 ) ParticipantDomainInterface {
 	return &participant{
 		videoID:        videoID,
 		userID:         userID,
 		editionID:      editionID,
 		userTime: 			userTime,
-		checked:         checked,
+		checked:        checked,
+		sent: 					sent,
 		createdAt:      createdAt,
 	}
 }

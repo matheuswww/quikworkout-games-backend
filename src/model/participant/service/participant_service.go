@@ -21,4 +21,5 @@ type ParticipantService interface {
 	CreateParticipant(participantDomain participant_domain.ParticipantDomainInterface, title, instagram string, size int64) (string, *rest_err.RestErr)
 	GetParticipants(editionID, cursor_createdAt, cursor_userTime string, worstTime bool) ([]participant_response.Participant, *rest_err.RestErr)
 	HasTicket(cookieId string) *rest_err.RestErr
+	VideoSent(videoId, userId string) *rest_err.RestErr
 }
