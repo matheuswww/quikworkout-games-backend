@@ -20,8 +20,9 @@ type UploadRequest struct {
 }
 
 type upload struct {
-	Approach string `json:"approach"`
-	Size     int64  `json:"size"`
+	Approach string    `json:"approach"`
+	Size     int64     `json:"size"`
+	RedirectUrl string `json:"redirect_url"`
 }
 
 type privacy struct {
@@ -44,6 +45,7 @@ func UploadVideo(name string, size int64) (string, string, error) {
 		Upload: upload{
 			Approach: "post",
 			Size:     size,
+			RedirectUrl: os.Getenv("CORSORIGIN_1")+"/conta/minha-conta?sent=true",
 		},
 		Privacy: privacy{
 			Embed: "public",
