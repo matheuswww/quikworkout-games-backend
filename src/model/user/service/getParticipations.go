@@ -12,8 +12,8 @@ import (
 	model_util "github.com/matheuswww/quikworkout-games-backend/src/model/util"
 )
 
-func (us *userService) GetParticipations(user_domain user_domain.UserDomainInterface, getParticipartRequest *user_request.GetParticipations) (*user_response.GetParticipations, *rest_err.RestErr) {
-	participants, db, restErr := us.userRepository.GetParticipations(user_domain, getParticipartRequest.Limit, getParticipartRequest.Cursor)
+func (us *userService) GetParticipations(user_domain user_domain.UserDomainInterface, getParticipationsRequest *user_request.GetParticipations) (*user_response.GetParticipations, *rest_err.RestErr) {
+	participants, db, restErr := us.userRepository.GetParticipations(user_domain, getParticipationsRequest)
 	if restErr != nil {
 		return nil, restErr
 	}
@@ -21,10 +21,10 @@ func (us *userService) GetParticipations(user_domain user_domain.UserDomainInter
 	for i := 0; i < len(participants.Participations); i++ {
 		resp, status, err := vimeo.GetVideo(vimeo.GetVideoParams{
 			VideoID: participants.Participations[i].VideoId,
-			Width: getParticipartRequest.Width,
-			Autoplay: getParticipartRequest.Autoplay,
-			Muted: getParticipartRequest.Muted,
-			Background: getParticipartRequest.Background,
+			Width: getParticipationsRequest.Width,
+			Autoplay: getParticipationsRequest.Autoplay,
+			Muted: getParticipationsRequest.Muted,
+			Background: getParticipationsRequest.Background,
 		})
 		if err != nil {
 			return nil, rest_err.NewInternalServerError("server error")

@@ -34,6 +34,7 @@ func GetVideo(params GetVideoParams) (*GetVideoResponse, int, error) {
 	videoURL := fmt.Sprintf("https://vimeo.com/%s", params.VideoID)
 
 	query := url.Values{}
+	query.Set("autopause", "false")
 	query.Set("url", videoURL)
 
 	if params.Width > 0 {
