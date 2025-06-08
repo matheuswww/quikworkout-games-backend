@@ -14,15 +14,15 @@ import (
 
 func (pc *participantController) GetParticipants(c *gin.Context) {
 	logger.Info("Init GetParticiapant", zap.String("journey", "GetParticipant Repository"))
-	var getParticipartRequest participant_request.GetParticipant
-	if err := c.ShouldBindQuery(&getParticipartRequest); err != nil {
+	var getParticipantRequest participant_request.GetParticipant
+	if err := c.ShouldBindQuery(&getParticipantRequest); err != nil {
 		logger.Error("Error trying convert fileds", errors.New("error trying convert fields"), zap.String("journey", "GetParticipant Controller"))
 		restErr := default_validator.HandleDefaultValidatorErrors(err)
 		c.JSON(restErr.Code, restErr)
 		return
 	}
 
-	participants, restErr := pc.participantService.GetParticipants(getParticipartRequest.EditionId, getParticipartRequest.CursorCreatedAt, getParticipartRequest.CursorUserTime, getParticipartRequest.WorstTime)
+	participants, restErr := pc.participantService.GetParticipants(&getParticipantRequest)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return

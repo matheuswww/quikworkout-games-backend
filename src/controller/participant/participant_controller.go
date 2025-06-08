@@ -17,7 +17,7 @@ func NewParticipantController(participantService participant_service.Participant
 
 type ParticipantController interface {
 	CreateParticipant(c *gin.Context)
-	GetParticipant(c *gin.Context)
+	GetParticipants(c *gin.Context)
 	HasTicket(c *gin.Context)
 	VideoSent(c *gin.Context)
 }
