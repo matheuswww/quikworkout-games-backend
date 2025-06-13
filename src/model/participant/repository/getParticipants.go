@@ -65,7 +65,7 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 		query += "p.user_time DESC, "
 	}
 	query += "p.created_at DESC "
-	query += "LIMIT 10"
+	query += "LIMIT 2"
 
 	rows, err := pr.mysql.QueryContext(ctx, query, args...)
 	if err != nil {
