@@ -10,7 +10,7 @@ import (
 )
 
 
-func (us *userService) CreateAccount(userDomain user_domain.UserDomainInterface, id, token string) *rest_err.RestErr {
+func (us *userService) CreateAccount(userDomain user_domain.UserDomainInterface, saveImg func() error, id, token string) *rest_err.RestErr {
 	recaptchaErr := recaptcha.NewRecaptcha().ValidateRecaptcha(token)
 	if recaptchaErr != nil {
 		return recaptchaErr
@@ -21,5 +21,14 @@ func (us *userService) CreateAccount(userDomain user_domain.UserDomainInterface,
 		return rest_err.NewInternalServerError("server error")
 	}
 	userDomain.SetSessionId(sessionId)
-	return us.userRepository.CreateAccount(userDomain, id)
+	restErr := us.userRepository.CreateAccount(userDomain, id)
+	if restErr != nil {
+		return restErr
+	}
+	err := saveImg()
+	if err != nil {
+		logger.Error("Error trying saveImg", err, zap.String("journey", "CreateAccount Service"))
+		return rest_err.NewInternalServerError("server error")
+	}
+	return nil
 }

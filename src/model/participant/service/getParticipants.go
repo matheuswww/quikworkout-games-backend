@@ -7,6 +7,7 @@ import (
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/vimeo"
 	participant_request "github.com/matheuswww/quikworkout-games-backend/src/controller/model/participant/request"
 	participant_response "github.com/matheuswww/quikworkout-games-backend/src/controller/model/participant/response"
+	user_service_util "github.com/matheuswww/quikworkout-games-backend/src/model/user/service/util"
 )
 
 func (ps *participantService) GetParticipants(getParticipantRequest *participant_request.GetParticipant) ([]participant_response.Participant, *rest_err.RestErr) {
@@ -29,7 +30,11 @@ func (ps *participantService) GetParticipants(getParticipantRequest *participant
 		if status == http.StatusNotFound {
 			continue
 		}
-		
+		photo, restErr := user_service_util.GetUserImage(participant.User.User)
+		if restErr != nil {
+			return nil, restErr
+		}
+		participant.User.Photo = photo
 		participant.Video = resp.Html
 		participant.Title = resp.Title
 		participant.ThumbnailUrl = resp.ThumbnailUrl

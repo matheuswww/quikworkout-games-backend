@@ -1,7 +1,6 @@
 package user_service
 
 import (
-
 	"net/http"
 
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/rest_err"
@@ -9,6 +8,7 @@ import (
 	user_request "github.com/matheuswww/quikworkout-games-backend/src/controller/model/user/request"
 	user_response "github.com/matheuswww/quikworkout-games-backend/src/controller/model/user/response"
 	user_domain "github.com/matheuswww/quikworkout-games-backend/src/model/user"
+	user_service_util "github.com/matheuswww/quikworkout-games-backend/src/model/user/service/util"
 	model_util "github.com/matheuswww/quikworkout-games-backend/src/model/util"
 )
 
@@ -17,7 +17,11 @@ func (us *userService) GetParticipations(user_domain user_domain.UserDomainInter
 	if restErr != nil {
 		return nil, restErr
 	}
-
+	photo, restErr := user_service_util.GetUserImage(participants.User.User)
+	if restErr != nil {
+		return nil, restErr
+	}
+	participants.User.Photo = photo
 	for i := 0; i < len(participants.Participations); i++ {
 		resp, status, err := vimeo.GetVideo(vimeo.GetVideoParams{
 			VideoID: participants.Participations[i].VideoId,

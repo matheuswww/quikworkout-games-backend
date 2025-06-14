@@ -5,4 +5,5 @@ type GetAccount struct {
 	User 		 string `json:"user"`
 	Category string `json:"category"`
 	Earnings int 		`json:"earnings"`
+	Photo    string `json:"photo"`
 }

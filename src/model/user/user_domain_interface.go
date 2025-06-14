@@ -22,7 +22,6 @@ func NewUserDomain(id, name, userName string, category string, earnings int, cpf
 		id:       id,		
 		name: 		name,
 		user:     userName,
-
 		category: category,
 		earnings: earnings,
 		cpf:      cpf,

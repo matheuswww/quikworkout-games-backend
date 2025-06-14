@@ -13,7 +13,7 @@ type Participant struct {
 	Edition      int    `json:"edition"`
 	EditionId    string `json:"edition_id"`
 	Placing      any    `json:"placing"`
-	Gain 				 any    `json:"gain"`
+	Gain         any    `json:"gain"`
 	UserTime     any    `json:"user_time"`
 	Desqualified any    `json:"desqualified"`
 	Checked      bool   `json:"checked"`
@@ -25,4 +25,5 @@ type User struct {
 	UserId string `json:"user_id"`
 	Name   string `json:"name"`
 	User   string `json:"user"`
+	Photo  string `json:"photo"`
 }
