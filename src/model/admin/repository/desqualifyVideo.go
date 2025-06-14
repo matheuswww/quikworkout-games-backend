@@ -10,9 +10,17 @@ import (
 	"go.uber.org/zap"
 )
 
-func (ar *adminRepository) DesqualifyVideo(videoID, desqualifed string) *rest_err.RestErr {
+func (ar *adminRepository) DesqualifyVideo(videoID, editionId, desqualifed string) *rest_err.RestErr {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
+
+	val, restErr := ar.HasNoPlacing(editionId)
+	if restErr != nil {
+		return restErr
+	}
+	if !val {
+		return rest_err.NewBadRequestError("this edition was finished")
+	}
 
 	query := "SELECT COUNT(*) FROM participant WHERE video_id = ?"
 	var count int

@@ -30,7 +30,7 @@ func (ac *adminController) CheckVideo(c *gin.Context) {
 		return
 	}
 
-	restErr := ac.adminService.CheckVideo(checkVideoRequest.VideoID)
+	restErr := ac.adminService.CheckVideo(checkVideoRequest.VideoID, checkVideoRequest.EditionId)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return

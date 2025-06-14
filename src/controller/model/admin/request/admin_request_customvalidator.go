@@ -39,6 +39,14 @@ func init() {
 		return t
 	}))
 
+	errors = append(errors, Validator.RegisterTranslation("time", *translator, func(ut ut.Translator) error {
+		return ut.Add("time", "time inválido", true)
+	}, func(ut ut.Translator, fe validator.FieldError) string {
+		t, err := ut.T("time", fe.Field())
+		errors = append(errors, err)
+		return t
+	}))
+
 	errors = append(errors, Validator.RegisterValidation("closing_date", func(fl validator.FieldLevel) bool {
 		dateStr := fl.Field().String		()
 		dateRegex := `^20\d\d-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$`
@@ -74,5 +82,12 @@ func init() {
 		today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local)
 
 		return !parsedDate.Before(today)
+	}))
+
+
+	errors = append(errors, Validator.RegisterValidation("time", func(fl validator.FieldLevel) bool {
+		pattern := `^([01]\d|2[0-3]):[0-5]\d:[0-5]\d\.\d{3}$`
+		matched, _ := regexp.MatchString(pattern, fl.Field().String())
+		return matched
 	}))
 }

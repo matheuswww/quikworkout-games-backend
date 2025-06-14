@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (ar *adminRepository) CheckVideo(videoID, editionId string) *rest_err.RestErr {
+func (ar *adminRepository) PutTime(videoId, editionId, userTime string) *rest_err.RestErr {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -24,21 +24,26 @@ func (ar *adminRepository) CheckVideo(videoID, editionId string) *rest_err.RestE
 
 	query := "SELECT COUNT(*) FROM participant WHERE video_id = ?"
 	var count int
-	err := ar.mysql.QueryRowContext(ctx, query, videoID).Scan(&count)
+	err := ar.mysql.QueryRowContext(ctx, query, videoId).Scan(&count)
 	if err != nil {
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "CheckVideo Repository"))
+		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "PutTime Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 	if count == 0 {
-		logger.Error("Error video not found", errors.New("video not found"), zap.String("journey", "CheckVideo Repository"))
+		logger.Error("Error video not found", errors.New("video not found"), zap.String("journey", "PutTime Repository"))
 		return rest_err.NewBadRequestError("video not found")
 	}
 
-	query = "UPDATE participant SET checked = TRUE WHERE video_id = ?"
-	_, err = ar.mysql.ExecContext(ctx, query, videoID)
+	var putTimeParam any = userTime
+	if userTime == "" {
+		putTimeParam = nil		
+	}
+
+	query = "UPDATE participant SET user_time = ? WHERE video_id = ?"
+	_,err = ar.mysql.ExecContext(ctx, query, putTimeParam, videoId)
 	if err != nil {
-		logger.Error("Error trying ExecContext", err, zap.String("journey", "CheckVideo Repository"))
-		return rest_err.NewInternalServerError("server error")
+		logger.Error("Error trying ExecContext", err, zap.String("journey", "PutTime Repository"))
+		return rest_err.NewInternalServerError("server Error")
 	}
 
 	return nil

@@ -22,7 +22,7 @@ func (ar *adminRepository) MakePlacing(editionId string) *rest_err.RestErr {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			logger.Error("Error Edition not found", errors.New("edition not found"), zap.String("journey", "MakePlacing repository"))
-			return rest_err.NewNotFoundError("edition not found")
+			return rest_err.NewBadRequestError("edition not found")
 		}
 		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "MakePlacing repository"))
 		return rest_err.NewInternalServerError("server error")
@@ -41,7 +41,7 @@ func (ar *adminRepository) MakePlacing(editionId string) *rest_err.RestErr {
 	}
 
 	var count int
-	query = "SELECT COUNT(*) user_time FROM participant WHERE edition_id = ? AND user_time IS NULL AND desqualified IS NULL"
+	query = "SELECT COUNT(*) user_time FROM participant WHERE edition_id = ? AND ((user_time IS NULL AND desqualified IS NULL) OR (user_time IS NOT NULL AND desqualified IS NULL AND checked IS FALSE))"
 	err = ar.mysql.QueryRowContext(ctx, query, editionId).Scan(&count)
 	if err != nil {
 		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "MakePlacing Repository"))
@@ -49,7 +49,7 @@ func (ar *adminRepository) MakePlacing(editionId string) *rest_err.RestErr {
 	}
 	if count > 0 {
 		logger.Error("Error trying MakePlacing", errors.New("there are still participants without a time"), zap.String("journey", "MakePlacing Repository"))
-		return rest_err.NewBadRequestError("there are still participants without a time")
+		return rest_err.NewBadRequestError("there are still participants without a time or checked")
 	}
  
 	query = "SELECT user_id FROM participant WHERE edition_id = ? AND desqualified IS NULL ORDER BY user_time ASC"

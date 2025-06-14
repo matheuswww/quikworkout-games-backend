@@ -13,30 +13,28 @@ import (
 	"go.uber.org/zap"
 )
 
-func (ac *adminController) DesqualifyVideo(c *gin.Context) {
-	logger.Info("Init DesqualifyVideo", zap.String("journey", "DesqualifyVideo Controller"))
+func (ac *adminController) PutTime(c *gin.Context) {
+	logger.Info("Init PutTime Controller", zap.String("journey", "PutTime Controller"))
 	_, err := admin_profile_cookie.GetAdminProfileValues(c)
 	if err != nil {
-		logger.Error("Erro trying get cookie", err, zap.String("journey", "DesqualifyVideo Controller"))
+		logger.Error("Error trying get cookie", err, zap.String("journey", "PutTime Controller"))
 		restErr := rest_err.NewUnauthorizedError("cookie inválido")
 		c.JSON(restErr.Code, restErr)
 		return
 	}
-
-	var desqualifyVideoRequest admin_request.DesqualifyVideo
-	if err := c.ShouldBindJSON(&desqualifyVideoRequest); err != nil {
-		logger.Error("Error trying convert fileds", errors.New("error trying convert fields"), zap.String("journey", "DesqualifyVideo Controller"))
+	var putTimeRequest admin_request.PutTimeRequest
+	if err := c.ShouldBindJSON(&putTimeRequest); err != nil {
+		logger.Error("Error trying convert fileds", errors.New("invalid fields"), zap.String("journey", "PutTime controller"))
 		restErr := default_validator.HandleDefaultValidatorErrors(err)
 		c.JSON(restErr.Code, restErr)
 		return
 	}
 
-	restErr := ac.adminService.DesqualifyVideo(desqualifyVideoRequest.VideoID, desqualifyVideoRequest.EditionId, desqualifyVideoRequest.Desqualified)
+	restErr := ac.adminService.PutTime(putTimeRequest.VideoId, putTimeRequest.EditionId, putTimeRequest.Time)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
-
-	logger.Info("Video desqualified! video_id: "+desqualifyVideoRequest.VideoID, zap.String("journey", "DesqualifyVideo Controller"))
+	
 	c.Status(http.StatusOK)
 }
