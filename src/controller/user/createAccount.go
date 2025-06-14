@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"path/filepath"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
@@ -28,7 +30,7 @@ func (uc *userController) CreateAccount(c *gin.Context) {
 		return
 	}
 	var createAccountRequest user_request.CreateAccount
-	if err := c.ShouldBindJSON(&createAccountRequest); err != nil {
+	if err := c.ShouldBind(&createAccountRequest); err != nil {
 		logger.Error("Error trying convert fileds", errors.New("invalid fields"), zap.String("journey", "CreateAccount Controller"))
 		restErr := default_validator.HandleDefaultValidatorErrors(err)
 		c.JSON(restErr.Code, restErr)
@@ -37,13 +39,36 @@ func (uc *userController) CreateAccount(c *gin.Context) {
 	translator, customErr := get_custom_validator.CustomValidator(createAccountRequest)
 	if customErr != nil {
 		restErr := custom_validator.HandleCustomValidatorErrors(translator, customErr)
-		fmt.Println(restErr.Causes)
 		logger.Error("Error trying convert fields", errors.New("invalid fields"), zap.String("journey", "CreateAccount Controller"))
 		c.JSON(restErr.Code, restErr)
 		return
 	}
-	userDomain := user_domain.NewUserDomain(cookie.Id, "",  createAccountRequest.User, createAccountRequest.Category, 0, createAccountRequest.CPF, "")
-	restErr := uc.userService.CreateAccount(userDomain, cookie.SessionId, createAccountRequest.Token)
+	const maxSize = 1 * 1024 * 1024
+	if createAccountRequest.Image.Size > maxSize {
+		restErr := rest_err.NewBadRequestError("image size must be less than or equal to 1MB")
+		c.JSON(restErr.Code, restErr)
+		return
+	}
+	ext := strings.ToLower(filepath.Ext(createAccountRequest.Image.Filename))
+	allowedExts := map[string]bool{
+		".jpg":  true,
+		".jpeg": true,
+		".png":  true,
+	}
+	if !allowedExts[ext] {
+		restErr := rest_err.NewBadRequestError("image extension must be jpg, jpeg, or png")
+		c.JSON(restErr.Code, restErr)
+		return
+	}
+	userDomain := user_domain.NewUserDomain(cookie.Id, "", createAccountRequest.User, createAccountRequest.Category, 0, createAccountRequest.CPF, "")
+	restErr := uc.userService.CreateAccount(userDomain, func() error {
+		absPath, err := filepath.Abs("images")
+		if err != nil {
+			return err
+		}
+		ext := filepath.Ext(createAccountRequest.Image.Filename)
+		return c.SaveUploadedFile(createAccountRequest.Image, fmt.Sprintf("%s/%s%s", absPath, createAccountRequest.User, ext))
+	} , cookie.SessionId, createAccountRequest.Token)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return

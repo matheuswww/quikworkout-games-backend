@@ -1,7 +1,7 @@
 package user_request
 
 import (
-	"regexp"
+	"strings"
 
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
@@ -23,19 +23,6 @@ func init() {
 	Validator := get_custom_validator.Validator
 	var errors []error
 
-	errors = append(errors, Validator.RegisterTranslation("date", *translator, func(ut ut.Translator) error {
-		return ut.Add("date", "data de nascimento inválida", true)
-	}, func(ut ut.Translator, fe validator.FieldError) string {
-		t, err := ut.T("date", fe.Field())
-		errors = append(errors, err)
-		return t
-	}))
-
-	errors = append(errors, Validator.RegisterValidation("date", func(fl validator.FieldLevel) bool {
-		dateRegex := `^20\d\d-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])$`
-		return regexp.MustCompile(dateRegex).MatchString(fl.Field().String())
-	}))
-
 	errors = append(errors, Validator.RegisterTranslation("cpf", *translator, func(ut ut.Translator) error {
 		return ut.Add("cpf", "CPF inválido", true)
 	}, func(ut ut.Translator, fe validator.FieldError) string {
@@ -49,5 +36,40 @@ func init() {
 			return ValidateCpf(fl.Field().String())
 		}
 		return false
+	}))
+
+	errors = append(errors, Validator.RegisterTranslation("user", *translator, func(ut ut.Translator) error {
+		return ut.Add("user", "usuário inválido", true)
+	}, func(ut ut.Translator, fe validator.FieldError) string {
+		t, err := ut.T("user", fe.Field())
+		errors = append(errors, err)
+		return t
+	}))
+
+	errors = append(errors, Validator.RegisterValidation("user", func(fl validator.FieldLevel) bool {
+		username := fl.Field().String()
+		if len(username) == 0 || len(username) > 30 {
+			return false
+		}
+		if strings.HasPrefix(username, ".") {
+			return false
+		}
+		if strings.HasSuffix(username, ".") {
+			return false
+		}
+		if strings.Contains(username, "..") {
+			return false
+		}
+		for _, ch := range username {
+			if (ch >= 'a' && ch <= 'z') ||
+				(ch >= 'A' && ch <= 'Z') ||
+				(ch == 'ç' || ch == 'Ç') ||
+				(ch >= '0' && ch <= '9') ||
+				ch == '.' || ch == '_' {
+				continue
+			}
+			return false
+		}
+		return true
 	}))
 }
