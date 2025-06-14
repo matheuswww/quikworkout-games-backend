@@ -20,7 +20,7 @@ type adminRepository struct {
 
 type AdminRepository interface {
 	CreateEdition(createEditionRequest *admin_request.CreateEdition) *rest_err.RestErr
-	GetParticipants(editionID, cursor_createdAt, cursor_userTime string) ([]admin_response.Participant, *rest_err.RestErr)
+	GetParticipants(getParticipantsRequest *admin_request.GetParticipants) ([]admin_response.Participant, *sql.DB, *rest_err.RestErr)
 	CheckVideo(videoID string) *rest_err.RestErr
 	DesqualifyVideo(videoID, desqualifed string) *rest_err.RestErr
 	MakePlacing(editionId string) *rest_err.RestErr

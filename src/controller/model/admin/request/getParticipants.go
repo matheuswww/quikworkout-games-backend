@@ -1,7 +1,13 @@
 package admin_request
 
 type GetParticipants struct {
-	EditionID       string `form:"edition_id"`
-	CursorCreatedAt string `form:"cursor_createdAt"`
-	CursorUserTime  string `form:"cursor_userTime"`
+	VideoId         string `form:"videoId"`
+	EditionId       string `form:"editionId"`
+	CursorCreatedAt string `form:"cursorCreatedAt"`
+	CursorUserTime  string `form:"cursorUserTime"`
+	BestTime        bool   `form:"bestTime"`
+	Width           int    `form:"width"`
+	Autoplay        bool   `form:"autoplay"`
+	Muted           bool   `form:"muted"`
+	Background      bool   `form:"background"`
 }

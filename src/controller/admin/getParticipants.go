@@ -18,7 +18,7 @@ func (ac *adminController) GetParticipants(c *gin.Context) {
 	logger.Info("Init GetParticipants Controller", zap.String("journey", "GetParticipants Controller"))
 	_, err := admin_profile_cookie.GetAdminProfileValues(c)
 	if err != nil {
-		logger.Error("Erro trying get cookie", err, zap.String("journey", "GetParticipants Controller"))
+		logger.Error("Error trying get cookie", err, zap.String("journey", "GetParticipants Controller"))
 		restErr := rest_err.NewUnauthorizedError("cookie inválido")
 		c.JSON(restErr.Code, restErr)
 		return
@@ -31,7 +31,7 @@ func (ac *adminController) GetParticipants(c *gin.Context) {
 		return
 	}
 
-	participants, restErr := ac.adminService.GetParticipants(getParticipantsRequest.EditionID, getParticipantsRequest.CursorCreatedAt, getParticipantsRequest.CursorUserTime)
+	participants, restErr := ac.adminService.GetParticipants(&getParticipantsRequest)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return
