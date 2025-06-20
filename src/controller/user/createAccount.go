@@ -24,7 +24,7 @@ func (uc *userController) CreateAccount(c *gin.Context) {
 	logger.Info("Init CreateAccount")
 	cookie, err := user_proflie_cookie.GetUserProfileCookieValues(c)
 	if err != nil {
-		logger.Error("Erro trying get cookie", err, zap.String("journey", "PayOrder Controller"))
+		logger.Error("Erro trying get cookie", err, zap.String("journey", "CreateAccount Controller"))
 		restErr := rest_err.NewUnauthorizedError("cookie inválido")
 		c.JSON(restErr.Code, restErr)
 		return
@@ -60,14 +60,14 @@ func (uc *userController) CreateAccount(c *gin.Context) {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
-	userDomain := user_domain.NewUserDomain(cookie.Id, "", createAccountRequest.User, createAccountRequest.Category, 0, createAccountRequest.CPF, "")
+	userDomain := user_domain.NewUserDomain(cookie.Id, "", createAccountRequest.User, createAccountRequest.Category, 0, "")
 	restErr := uc.userService.CreateAccount(userDomain, func() error {
 		absPath, err := filepath.Abs("images")
 		if err != nil {
 			return err
 		}
 		ext := filepath.Ext(createAccountRequest.Image.Filename)
-		return c.SaveUploadedFile(createAccountRequest.Image, fmt.Sprintf("%s/%s%s", absPath, createAccountRequest.User, ext))
+		return c.SaveUploadedFile(createAccountRequest.Image, fmt.Sprintf("%s/%s%s", absPath, userDomain.GetId(), ext))
 	} , cookie.SessionId, createAccountRequest.Token)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)

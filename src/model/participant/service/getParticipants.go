@@ -30,7 +30,7 @@ func (ps *participantService) GetParticipants(getParticipantRequest *participant
 		if status == http.StatusNotFound {
 			continue
 		}
-		photo, restErr := user_service_util.GetUserImage(participant.User.User)
+		photo, restErr := user_service_util.GetUserImage(participant.User.UserId)
 		if restErr != nil {
 			return nil, restErr
 		}

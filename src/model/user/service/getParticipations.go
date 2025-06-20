@@ -17,7 +17,7 @@ func (us *userService) GetParticipations(user_domain user_domain.UserDomainInter
 	if restErr != nil {
 		return nil, restErr
 	}
-	photo, restErr := user_service_util.GetUserImage(participants.User.User)
+	photo, restErr := user_service_util.GetUserImage(participants.User.UserId)
 	if restErr != nil {
 		return nil, restErr
 	}

@@ -41,7 +41,7 @@ func (pc *participantController) CreateParticipant(c *gin.Context) {
 
 	participant := participant_domain.NewParticipantDomain("", cookie.Id, "", nil, "", false, false)
 
-	form, restErr := pc.participantService.CreateParticipant(participant, createParticipantRequest.Title, createParticipantRequest.Instagram, createParticipantRequest.Size)
+	form, restErr := pc.participantService.CreateParticipant(participant, createParticipantRequest.Title, createParticipantRequest.Size)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return

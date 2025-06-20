@@ -22,8 +22,9 @@ type Participant struct {
 }
 
 type User struct {
-	UserId string `json:"user_id"`
-	Name   string `json:"name"`
-	User   string `json:"user"`
-	Photo  string `json:"photo"`
+	UserId    string `json:"user_id"`
+	Name      string `json:"name"`
+	User      string `json:"user"`
+	Email     string `json:"email"`
+	Photo     string `json:"photo"`
 }

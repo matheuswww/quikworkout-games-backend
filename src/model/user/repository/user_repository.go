@@ -24,4 +24,5 @@ type UserRepository interface {
 	EnterAccount(userDomain user_domain.UserDomainInterface) *rest_err.RestErr
 	GetAccount(userDomain user_domain.UserDomainInterface, sessionIdFromCookie string) *rest_err.RestErr
 	GetParticipations(user_domain user_domain.UserDomainInterface, getParticipationsRequest *user_request.GetParticipations) (*user_response.GetParticipations, *sql.DB, *rest_err.RestErr)
+	Update(userDomain user_domain.UserDomainInterface, updateRequest *user_request.Update) *rest_err.RestErr
 }

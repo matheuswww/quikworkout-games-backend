@@ -10,6 +10,7 @@ import (
 	user_games_cookie "github.com/matheuswww/quikworkout-games-backend/src/cookies/user/user_games"
 	user_domain "github.com/matheuswww/quikworkout-games-backend/src/model/user"
 	user_service_util "github.com/matheuswww/quikworkout-games-backend/src/model/user/service/util"
+	model_util "github.com/matheuswww/quikworkout-games-backend/src/model/util"
 	"go.uber.org/zap"
 )
 
@@ -22,13 +23,18 @@ func (uc *userController) GetAccount(c *gin.Context) {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
-	userDomain := user_domain.NewUserDomain(cookie.Id, "", "", "", 0, "", "")
-	restErr := uc.userService.GetAccount(userDomain, cookie.SessionId)
+	restErr := model_util.CheckUserGames(cookie.SessionId, cookie.Id)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
-	photo, restErr := user_service_util.GetUserImage(userDomain.GetUser())
+	userDomain := user_domain.NewUserDomain(cookie.Id, "", "", "", 0, "")
+	restErr = uc.userService.GetAccount(userDomain, cookie.SessionId)
+	if restErr != nil {
+		c.JSON(restErr.Code, restErr)
+		return
+	}
+	photo, restErr := user_service_util.GetUserImage(userDomain.GetId())
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return
