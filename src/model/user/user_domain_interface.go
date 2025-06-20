@@ -11,20 +11,17 @@ type UserDomainInterface interface {
 	SetCategory(string)
 	GetEarnings() int
 	SetEarnings(int)
-	GetCPF() string
-	SetCPF(string)
 	GetSessionId() string
 	SetSessionId(string)
 }
 
-func NewUserDomain(id, name, userName string, category string, earnings int, cpf, sessionId string) UserDomainInterface {
+func NewUserDomain(id, name, userName string, category string, earnings int, sessionId string) UserDomainInterface {
 	return &user{
 		id:       id,		
 		name: 		name,
 		user:     userName,
 		category: category,
 		earnings: earnings,
-		cpf:      cpf,
 		session_id: sessionId,
 	}
 }

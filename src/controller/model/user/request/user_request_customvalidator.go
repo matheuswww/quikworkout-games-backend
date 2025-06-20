@@ -23,21 +23,6 @@ func init() {
 	Validator := get_custom_validator.Validator
 	var errors []error
 
-	errors = append(errors, Validator.RegisterTranslation("cpf", *translator, func(ut ut.Translator) error {
-		return ut.Add("cpf", "CPF inválido", true)
-	}, func(ut ut.Translator, fe validator.FieldError) string {
-		t, err := ut.T("cpf", fe.Field())
-		errors = append(errors, err)
-		return t
-	}))
-
-	errors = append(errors, Validator.RegisterValidation("cpf", func(fl validator.FieldLevel) bool {
-		if len(fl.Field().String()) == 11 {
-			return ValidateCpf(fl.Field().String())
-		}
-		return false
-	}))
-
 	errors = append(errors, Validator.RegisterTranslation("user", *translator, func(ut ut.Translator) error {
 		return ut.Add("user", "usuário inválido", true)
 	}, func(ut ut.Translator, fe validator.FieldError) string {
@@ -48,8 +33,8 @@ func init() {
 
 	errors = append(errors, Validator.RegisterValidation("user", func(fl validator.FieldLevel) bool {
 		username := fl.Field().String()
-		if len(username) == 0 || len(username) > 30 {
-			return false
+		if len(username) == 0 {
+			return true
 		}
 		if strings.HasPrefix(username, ".") {
 			return false

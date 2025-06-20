@@ -6,7 +6,7 @@ import (
 	participant_domain "github.com/matheuswww/quikworkout-games-backend/src/model/participant"
 )
 
-func (ps *participantService) CreateParticipant(participantDomain participant_domain.ParticipantDomainInterface, title, instagram string, size int64) (string, *rest_err.RestErr) {
+func (ps *participantService) CreateParticipant(participantDomain participant_domain.ParticipantDomainInterface, title string, size int64) (string, *rest_err.RestErr) {
 	restErr := ps.participantRepository.IsValidRegistrationForEdition(participantDomain)
 	if restErr != nil {
 		return "", restErr
@@ -21,7 +21,7 @@ func (ps *participantService) CreateParticipant(participantDomain participant_do
 		return "", restErr
 	}
 	participantDomain.SetVideoID(id)
-	restErr = ps.participantRepository.CreateParticipant(participantDomain, instagram)
+	restErr = ps.participantRepository.CreateParticipant(participantDomain)
 	if restErr != nil {
 		return "", restErr
 	}

@@ -20,7 +20,7 @@ func NewParticipantRepository(mysql *sql.DB) ParticipantRepository {
 }
 
 type ParticipantRepository interface {
-	CreateParticipant(participantDomain participant_domain.ParticipantDomainInterface, instagram string) *rest_err.RestErr 
+	CreateParticipant(participantDomain participant_domain.ParticipantDomainInterface) *rest_err.RestErr 
 	IsValidRegistrationForEdition(participantDomain participant_domain.ParticipantDomainInterface) *rest_err.RestErr
 	GetParticipants(getParticipantRequest *participant_request.GetParticipant) ([]participant_response.Participant, *rest_err.RestErr)
 	HasTicket(cookieId string) ([]PaymentInfos, *rest_err.RestErr)

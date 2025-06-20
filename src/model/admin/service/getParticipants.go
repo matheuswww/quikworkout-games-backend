@@ -35,7 +35,7 @@ func (as *adminService) GetParticipants(getParticipantsRequest *admin_request.Ge
 			}
 			participants[i].Sent = true
 		}
-		photo, restErr := user_service_util.GetUserImage(participants[i].User.User)
+		photo, restErr := user_service_util.GetUserImage(participants[i].User.UserId)
 		if restErr != nil {
 			return nil, restErr
 		}

@@ -41,16 +41,6 @@ func (ur *userRepository) CreateAccount(userDomain user_domain.UserDomainInterfa
 	}
 	userDomain.SetName(name)
 
-	query = "SELECT COUNT(*) FROM user_games WHERE cpf = ?"
-	err = ur.mysql.QueryRowContext(ctx, query, userDomain.GetCPF()).Scan(&count)
-	if err != nil {
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "CreateAccount Repository"))
-		return rest_err.NewInternalServerError("server error")
-	}
-	if count != 0 {
-		logger.Error("Error cpf already exists", errors.New("cpf already exists"), zap.String("journey", "CreateAccount Repository"))
-		return rest_err.NewBadRequestError("cpf já cadastrado")
-	}
 	query = "SELECT COUNT(*) FROM user_games WHERE user = ?"
 	err = ur.mysql.QueryRowContext(ctx, query, userDomain.GetUser()).Scan(&count)
 	if err != nil {
@@ -62,8 +52,8 @@ func (ur *userRepository) CreateAccount(userDomain user_domain.UserDomainInterfa
 		return rest_err.NewBadRequestError("usuário já cadastrado")
 	}
 
-	query = "INSERT INTO user_games (user_id, name, user, category, cpf, earnings, session_id) VALUES (?, ?, ?, ?, ?, ?, ?)"
-	_, err = ur.mysql.ExecContext(ctx, query, userDomain.GetId(), userDomain.GetName(), userDomain.GetUser(), userDomain.GetCategory(), userDomain.GetCPF(), userDomain.GetEarnings(), userDomain.GetSessionId())
+	query = "INSERT INTO user_games (user_id, name, user, category, earnings, session_id) VALUES (?, ?, ?, ?, ?, ?)"
+	_, err = ur.mysql.ExecContext(ctx, query, userDomain.GetId(), userDomain.GetName(), userDomain.GetUser(), userDomain.GetCategory(), userDomain.GetEarnings(), userDomain.GetSessionId())
 	if err != nil {
 		logger.Error("Error trying insert user", err, zap.String("journey", "CreateAccount Repository"))
 		return rest_err.NewInternalServerError("server error")

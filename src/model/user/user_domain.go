@@ -6,7 +6,6 @@ type user struct {
 	user     string
 	category string
 	earnings int
-	cpf      string
 	session_id string
 }
 
@@ -48,14 +47,6 @@ func (u *user) GetEarnings() int {
 
 func (u *user) SetEarnings(earnings int) {
 	u.earnings = earnings
-}
-
-func (u *user) GetCPF() string {
-	return u.cpf
-}
-
-func (u *user) SetCPF(cpf string) {
-	u.cpf = cpf
 }
 
 func (u *user) GetSessionId() string {
