@@ -54,7 +54,7 @@ func (er *editionRepository) GetEdition(number, limit int, cursor string) ([]edi
 	for rows.Next() {
 		var id, start_date, closing_date, rules, challenge, created_at string
 		var gain, top, number int
-		err := rows.Scan(&id, &start_date, &closing_date, &rules, &challenge, &number, &gain, &top, &created_at)
+		err := rows.Scan(&id, &start_date, &closing_date, &rules, &challenge, &number, &top, &gain, &created_at)
 		if err != nil {
 			logger.Error("Error trying scan row", err, zap.String("journey", "GetEdition Repository"))
 			return nil, rest_err.NewInternalServerError("server error")

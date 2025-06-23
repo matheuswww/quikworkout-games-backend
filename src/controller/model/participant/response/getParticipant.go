@@ -2,6 +2,7 @@ package participant_response
 
 type GetParticipant struct {
 	Particiapants []Participant `json:"participants"`
+	ClosingDate   string        `json:"closing_date"`
 }
 
 type Participant struct {

@@ -8,7 +8,6 @@ import (
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
 	default_validator "github.com/matheuswww/quikworkout-games-backend/src/configuration/validation/defaultValidator"
 	participant_request "github.com/matheuswww/quikworkout-games-backend/src/controller/model/participant/request"
-	participant_response "github.com/matheuswww/quikworkout-games-backend/src/controller/model/participant/response"
 	"go.uber.org/zap"
 )
 
@@ -28,7 +27,5 @@ func (pc *participantController) GetParticipants(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, participant_response.GetParticipant{
-		Particiapants: participants,
-	})
+	c.JSON(http.StatusOK, participants)
 }

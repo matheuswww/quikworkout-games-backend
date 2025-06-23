@@ -9,7 +9,6 @@ import (
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/rest_err"
 	default_validator "github.com/matheuswww/quikworkout-games-backend/src/configuration/validation/defaultValidator"
 	admin_request "github.com/matheuswww/quikworkout-games-backend/src/controller/model/admin/request"
-	admin_response "github.com/matheuswww/quikworkout-games-backend/src/controller/model/admin/response"
 	admin_profile_cookie "github.com/matheuswww/quikworkout-games-backend/src/cookies/admin_profile"
 	"go.uber.org/zap"
 )
@@ -37,7 +36,5 @@ func (ac *adminController) GetParticipants(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, admin_response.GetParticipants{
-		Participants: participants,
-	})
+	c.JSON(http.StatusOK, participants)
 }

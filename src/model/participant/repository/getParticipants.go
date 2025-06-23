@@ -13,14 +13,15 @@ import (
 	"go.uber.org/zap"
 )
 
-func (pr *participantRepository) GetParticipants(getParticipantRequest *participant_request.GetParticipant) ([]participant_response.Participant, *rest_err.RestErr) {
+func (pr *participantRepository) GetParticipants(getParticipantRequest *participant_request.GetParticipant) (*participant_response.GetParticipant, *rest_err.RestErr) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
+	var closing_date string
 	if getParticipantRequest.EditionId == "" {
 		var edition_id string
-		query := "SELECT edition_id FROM edition ORDER BY created_at DESC LIMIT 1"
-		err := pr.mysql.QueryRowContext(ctx, query).Scan(&edition_id)
+		query := "SELECT edition_id, closing_date FROM edition ORDER BY created_at DESC LIMIT 1"
+		err := pr.mysql.QueryRowContext(ctx, query).Scan(&edition_id, &closing_date)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipant Repository"))
@@ -109,5 +110,8 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 		return nil, rest_err.NewNotFoundError("no participants were found")
 	}
 	
-	return participants, nil
+	return &participant_response.GetParticipant{
+		Particiapants: participants,
+		ClosingDate: closing_date,
+	}, nil
 }

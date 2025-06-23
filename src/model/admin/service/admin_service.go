@@ -19,7 +19,7 @@ type adminService struct {
 
 type AdminService interface {
 	CreateEdition(createEditionRequest *admin_request.CreateEdition) *rest_err.RestErr
-	GetParticipants(getParticipantsRequest *admin_request.GetParticipants) ([]admin_response.Participant, *rest_err.RestErr)
+	GetParticipants(getParticipantsRequest *admin_request.GetParticipants) (*admin_response.GetParticipants, *rest_err.RestErr)
 	CheckVideo(videoID, editionId string) *rest_err.RestErr
 	DesqualifyVideo(videoID, editionId, desqualifed string) *rest_err.RestErr
 	MakePlacing(editionId string) *rest_err.RestErr

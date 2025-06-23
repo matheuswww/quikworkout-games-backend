@@ -11,15 +11,15 @@ import (
 	model_util "github.com/matheuswww/quikworkout-games-backend/src/model/util"
 )
 
-func (as *adminService) GetParticipants(getParticipantsRequest *admin_request.GetParticipants) ([]admin_response.Participant, *rest_err.RestErr) {
+func (as *adminService) GetParticipants(getParticipantsRequest *admin_request.GetParticipants) (*admin_response.GetParticipants, *rest_err.RestErr) {
 	participants, db, restErr := as.adminRepository.GetParticipants(getParticipantsRequest)
 	if restErr != nil {
 		return nil, restErr
 	}
 
-	for i := 0; i < len(participants); i++ {
+	for i := 0; i < len(participants.Participants); i++ {
 		resp, status, err := vimeo.GetVideo(vimeo.GetVideoParams{
-			VideoID: participants[i].VideoId,
+			VideoID: participants.Participants[i].VideoId,
 			Width: getParticipantsRequest.Width,
 			Autoplay: getParticipantsRequest.Autoplay,
 			Muted: getParticipantsRequest.Muted,
@@ -28,24 +28,24 @@ func (as *adminService) GetParticipants(getParticipantsRequest *admin_request.Ge
 		if err != nil {
 			return nil, rest_err.NewInternalServerError("server error")
 		}
-		if status == http.StatusOK && !participants[i].Sent {
-			restErr := model_util.VideoSent(db, participants[i].VideoId, participants[i].User.UserId)
+		if status == http.StatusOK && !participants.Participants[i].Sent {
+			restErr := model_util.VideoSent(db, participants.Participants[i].VideoId, participants.Participants[i].User.UserId)
 			if restErr != nil {
 				return nil, restErr
 			}
-			participants[i].Sent = true
+			participants.Participants[i].Sent = true
 		}
-		photo, restErr := user_service_util.GetUserImage(participants[i].User.UserId)
+		photo, restErr := user_service_util.GetUserImage(participants.Participants[i].User.UserId)
 		if restErr != nil {
 			return nil, restErr
 		}
-		participants[i].User.Photo = photo
+		participants.Participants[i].User.Photo = photo
 		if status == http.StatusNotFound {
 			continue
 		}
-		participants[i].Video = resp.Html
-		participants[i].Title = resp.Title
-		participants[i].ThumbnailUrl = resp.ThumbnailUrl
+		participants.Participants[i].Video = resp.Html
+		participants.Participants[i].Title = resp.Title
+		participants.Participants[i].ThumbnailUrl = resp.ThumbnailUrl
 	}
 	return participants, nil
 }
