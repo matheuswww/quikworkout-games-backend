@@ -11,6 +11,10 @@ import (
 	"go.uber.org/zap"
 )
 
+type top struct {
+	top int
+	gain int	
+}
 
 func (ar *adminRepository) MakePlacing(editionId string) *rest_err.RestErr {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
@@ -51,9 +55,31 @@ func (ar *adminRepository) MakePlacing(editionId string) *rest_err.RestErr {
 		logger.Error("Error trying MakePlacing", errors.New("there are still participants without a time"), zap.String("journey", "MakePlacing Repository"))
 		return rest_err.NewBadRequestError("there are still participants without a time or checked")
 	}
- 
-	query = "SELECT user_id FROM participant WHERE edition_id = ? AND desqualified IS NULL ORDER BY user_time ASC"
+
+	query = "SELECT top, gain FROM top WHERE edition_id = ? ORDER BY top ASC"
 	rows, err := ar.mysql.QueryContext(ctx, query, editionId)
+	if err != nil {
+		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "MakePlacing Repository"))
+		return rest_err.NewInternalServerError("server error")
+	}
+	defer rows.Close()
+	
+	var tops []top
+	for rows.Next() {
+		var tp, gain int
+		err := rows.Scan(&tp, &gain)
+		if err != nil {
+			logger.Error("Error trying rows next", err, zap.String("journey", "MakePlacing Repository"))
+			return rest_err.NewInternalServerError("server error")
+		}
+		tops = append(tops, top{
+			top: tp,
+			gain: gain,
+		})
+	}
+	
+	query = "SELECT user_id FROM participant WHERE edition_id = ? AND desqualified IS NULL ORDER BY user_time ASC"
+	rows, err = ar.mysql.QueryContext(ctx, query, editionId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			logger.Error("Error trying QueryContext", errors.New("no participants found"), zap.String("journey", "MakePlacing Repository"))
@@ -62,6 +88,8 @@ func (ar *adminRepository) MakePlacing(editionId string) *rest_err.RestErr {
 		logger.Error("Error trying QueryContext", err, zap.String("journey", "MakePlacing Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
+	defer rows.Close()
+	
 	var userIds []string
 	for rows.Next() {
 		var user_id string
@@ -72,31 +100,78 @@ func (ar *adminRepository) MakePlacing(editionId string) *rest_err.RestErr {
 		}
 		userIds = append(userIds, user_id)
 	}
-	
+
+	tx, err := ar.mysql.Begin()
+	if err != nil {
+		logger.Error("Error trying Begin", err, zap.String("journey", "MakePlacing Repository"))
+		return rest_err.NewInternalServerError("server error")
+	}
+
 	query = "UPDATE participant SET placing = CASE user_id "
+	endQuery := "END WHERE edition_id = ? AND user_id IN ("
+	endQueryArgs := []any{editionId}
 	args := []any{}
 
 	for i, userId := range userIds {
 		query += "WHEN ? THEN ? "
+		if i > 0 {
+			endQuery += ", "
+		}
+		endQuery += "?"
+		endQueryArgs = append(endQueryArgs, userId)
 		args = append(args, userId, i+1)
 	}
+	endQuery += ")"
+	query += endQuery
+	args = append(args, endQueryArgs...)
 
-	query += "END WHERE edition_id = ? AND user_id IN ("
-
-	args = append(args, editionId)
-
-	for i, userID := range userIds {
-		if i > 0 {
-			query += ", "
-		}
-		query += "?"
-		args = append(args, userID)
-	}
-	query += ")"
-
-	_,err = ar.mysql.ExecContext(ctx, query, args...)
+	_,err = tx.ExecContext(ctx, query, args...)
 	if err != nil {
-		logger.Error("Error trying Scan", err, zap.String("journey", "MakePlacing Repository"))
+		logger.Error("Error trying ExecContext", err, zap.String("journey", "MakePlacing Repository"))
+		err := tx.Rollback()
+		if err != nil {
+			logger.Error("Error trying rollback", err, zap.String("journey", "MakePlacing Repository"))
+			return rest_err.NewInternalServerError("server error")
+		}
+		return rest_err.NewInternalServerError("server error")
+	}
+	args = nil
+	endQueryArgs = nil
+	
+
+	query = "UPDATE user_games SET earnings = CASE user_id "
+	endQuery = "END WHERE user_id IN ("
+	for i, userId := range userIds {
+		if i <= len(tops) - 1 {
+			query += "WHEN ? THEN ? "
+			args = append(args, userId, tops[i].gain)
+			if i > 0 {
+				endQuery += ", "
+			}
+			endQuery += "?"
+			endQueryArgs = append(endQueryArgs, userId)
+			continue
+		}
+		break
+	}
+	endQuery += ")"
+	query += endQuery
+
+	args = append(args, endQueryArgs...)
+	_,err = tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		logger.Error("Error trying ExecContext", err, zap.String("journey", "MakePlacing Repository"))
+		err := tx.Rollback()
+		if err != nil {
+			logger.Error("Error trying rollback", err, zap.String("journey", "MakePlacing Repository"))
+			return rest_err.NewInternalServerError("server error")
+		}
+		return rest_err.NewInternalServerError("server error")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		logger.Error("Error trying Commit", err, zap.String("journey", "MakePlacing Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 
