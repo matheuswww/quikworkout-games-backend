@@ -5,6 +5,7 @@ type GetParticipants struct {
 	EditionId       string `form:"editionId"`
 	CursorCreatedAt string `form:"cursorCreatedAt"`
 	CursorUserTime  string `form:"cursorUserTime"`
+	Category        string `form:"category" validate:"category"`
 	BestTime        bool   `form:"bestTime"`
 	Width           int    `form:"width"`
 	Autoplay        bool   `form:"autoplay"`

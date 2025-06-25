@@ -18,24 +18,34 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	defer cancel()
 
 	var closing_date string
+	var edition_id string
+	var query string
+	var args []any
 	if getParticipantsRequest.EditionId == "" {
-		var edition_id string
-		query := "SELECT edition_id, closing_date FROM edition ORDER BY created_at DESC LIMIT 1"
-		err := ar.mysql.QueryRowContext(ctx, query).Scan(&edition_id, &closing_date)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipants Repository"))
-				return nil, nil, rest_err.NewNotFoundError("no edition found")
-			}
-			logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipants Repository"))
-			return nil, nil, rest_err.NewInternalServerError("server error")
-		}
-		getParticipantsRequest.EditionId = edition_id
+		query = "SELECT edition_id, closing_date FROM edition ORDER BY created_at DESC LIMIT 1"
+	} else {
+		query = "SELECT edition_id, closing_date FROM edition WHERE edition_id = ?"
+		args = append(args, getParticipantsRequest.EditionId)
 	}
 
-	var args []any
+	err := ar.mysql.QueryRowContext(ctx, query, args...).Scan(&edition_id, &closing_date)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipants Repository"))
+			return nil, nil, rest_err.NewNotFoundError("no edition found")
+		}
+		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipants Repository"))
+		return nil, nil, rest_err.NewInternalServerError("server error")
+	}
+	getParticipantsRequest.EditionId = edition_id
+	args = nil
+
 	args = append(args, getParticipantsRequest.EditionId)
-	query := "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.desqualified, p.sent, p.checked, u.user_id, u.name, u.user, t.gain, uq.email, p.created_at FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id JOIN user AS uq ON uq.user_id = u.user_id JOIN edition AS e ON p.edition_id = e.edition_id LEFT JOIN top AS t ON t.top = p.placing AND t.edition_id = p.edition_id WHERE p.edition_id = ? AND "
+	query = "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.desqualified, p.category, p.sent, p.checked, u.user_id, u.name, u.user, t.gain, uq.email, p.created_at FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id JOIN user AS uq ON uq.user_id = u.user_id JOIN edition AS e ON p.edition_id = e.edition_id LEFT JOIN top AS t ON t.top = p.placing AND t.edition_id = p.edition_id AND t.category = p.category WHERE p.edition_id = ? AND "
+	if getParticipantsRequest.Category != "" {
+		query += "p.category = ? AND "
+		args = append(args, getParticipantsRequest.Category)
+	}
 	if getParticipantsRequest.VideoId != "" {
 		query += "p.video_id = ? AND "
 		args = append(args, getParticipantsRequest.VideoId)
@@ -51,6 +61,7 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	query = query[:len(query)-4]
 
 	query += "ORDER BY p.desqualified ASC, p.user_time IS NOT NULL, p.user_time ASC, p.created_at DESC LIMIT 10"
+
 	rows, err := ar.mysql.QueryContext(ctx, query, args...)
 	if err != nil {
 		logger.Error("Error trying QueryContext", err, zap.String("journey", "GetParticipants Repository"))
@@ -59,12 +70,12 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	defer rows.Close()
 	var participants []admin_response.Participant
 	for rows.Next() {
-		var video_id, user_id, edition_id, name, user, email, created_at string
+		var video_id, user_id, edition_id, name, category, user, email, created_at string
 		var userTime, placing, desqualified sql.NullString
 		var gain sql.NullInt64
 		var checked, sent bool
 		var number int
-		err = rows.Scan(&video_id, &placing, &edition_id, &number, &userTime, &desqualified, &sent, &checked, &user_id, &name, &user, &gain, &email, &created_at)
+		err = rows.Scan(&video_id, &placing, &edition_id, &number, &userTime, &desqualified, &category, &sent, &checked, &user_id, &name, &user, &gain, &email, &created_at)
 		if err != nil {
 			logger.Error("Error trying Scan", err, zap.String("journey", "GetParticipants Repository"))
 			return nil, nil, rest_err.NewInternalServerError("server error")
@@ -91,6 +102,7 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 			EditionId:    edition_id,
 			Sent:         sent,
 			Placing:      placingValid,
+			Category:     category,
 			Gain:         gainValid,
 			UserTime:     userTimeValid,
 			Desqualified: desqualifiedValid,
@@ -112,6 +124,6 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 
 	return &admin_response.GetParticipants{
 		Participants: participants,
-		ClosingDate: closing_date,
+		ClosingDate:  closing_date,
 	}, ar.mysql, nil
 }

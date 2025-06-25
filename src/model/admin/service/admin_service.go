@@ -22,6 +22,6 @@ type AdminService interface {
 	GetParticipants(getParticipantsRequest *admin_request.GetParticipants) (*admin_response.GetParticipants, *rest_err.RestErr)
 	CheckVideo(videoID, editionId string) *rest_err.RestErr
 	DesqualifyVideo(videoID, editionId, desqualifed string) *rest_err.RestErr
-	MakePlacing(editionId string) *rest_err.RestErr
+	MakePlacing(editionId, category string) *rest_err.RestErr
 	PutTime(videoId, editionId, userTime string) *rest_err.RestErr
 }

@@ -38,6 +38,33 @@ func (ac *adminController) CreateEdition(c *gin.Context) {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
+
+	tops := make(map[string]map[int]bool)
+	lastCategory := createEdition.Tops[0].Category
+	i := 0
+	for _,top := range createEdition.Tops {
+		if lastCategory != top.Category {
+			i = 0
+		}
+		i++
+		if ok := tops[top.Category][top.Top]; ok {
+			restErr := rest_err.NewBadRequestError("não é permitido ter dois tops iguais")
+			c.JSON(restErr.Code, restErr)
+			return
+		}
+		if i != top.Top {
+			restErr := rest_err.NewBadRequestError("os tops devem ser ordenados em 1,2,3...")
+			c.JSON(restErr.Code, restErr)
+			return
+		}
+		if tops[top.Category] == nil {
+			tops[top.Category] = make(map[int]bool)
+		}
+	
+		tops[top.Category][top.Top] = true
+		lastCategory = top.Category
+	}
+	
 	restErr := ac.adminService.CreateEdition(&createEdition)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)

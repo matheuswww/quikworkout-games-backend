@@ -23,6 +23,15 @@ func init() {
 	translator := &get_custom_validator.Translator
 	Validator := get_custom_validator.Validator
 	var errors []error
+
+	errors = append(errors, Validator.RegisterTranslation("category", *translator, func(ut ut.Translator) error {
+		return ut.Add("category", "categoria deve ser iniciante, scaled ou rx", true)
+	}, func(ut ut.Translator, fe validator.FieldError) string {
+		t, err := ut.T("category", fe.Field())
+		errors = append(errors, err)
+		return t
+	}))
+
 	errors = append(errors, Validator.RegisterTranslation("closing_date", *translator, func(ut ut.Translator) error {
 		return ut.Add("closing_date", "data encerramento inválida", true)
 	}, func(ut ut.Translator, fe validator.FieldError) string {
@@ -45,6 +54,17 @@ func init() {
 		t, err := ut.T("time", fe.Field())
 		errors = append(errors, err)
 		return t
+	}))
+
+	errors = append(errors, Validator.RegisterValidation("category", func(fl validator.FieldLevel) bool {
+		field := fl.Field().String()
+		if field == "" {
+			return true
+		}
+		if field != "iniciante" && field != "scaled" && field != "rx" {
+			return false
+		}
+		return true
 	}))
 
 	errors = append(errors, Validator.RegisterValidation("closing_date", func(fl validator.FieldLevel) bool {

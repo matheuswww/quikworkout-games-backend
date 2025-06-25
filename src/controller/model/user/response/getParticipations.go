@@ -17,6 +17,7 @@ type Participantion struct {
 	Placing      any    `json:"placing"`
 	UserTime     any    `json:"user_time"`
 	Desqualified any    `json:"desqualified"`
+	Category     string `json:"category"`
 	Checked      bool   `json:"checked"`
 	CreatedAt    string `json:"createdAt"`
 }

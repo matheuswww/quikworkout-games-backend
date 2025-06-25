@@ -6,12 +6,5 @@ import (
 )
 
 func (as *adminService) CreateEdition(createEditionRequest *admin_request.CreateEdition) *rest_err.RestErr {
-	tops := make(map[int]bool)
-	for _,top := range createEditionRequest.Tops {
-		if ok := tops[top.Top]; ok {
-			return rest_err.NewBadRequestError("não é permitido ter dois tops iguais")
-		}
-		tops[top.Top] = true
-	}
 	return as.adminRepository.CreateEdition(createEditionRequest)
 }

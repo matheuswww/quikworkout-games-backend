@@ -2,7 +2,7 @@ package admin_response
 
 type GetParticipants struct {
 	Participants []Participant `json:"participants"`
-	ClosingDate string `json:"closing_date"`
+	ClosingDate  string        `json:"closing_date"`
 }
 
 type Participant struct {
@@ -10,6 +10,7 @@ type Participant struct {
 	Title        any    `json:"title"`
 	ThumbnailUrl any    `json:"thumbnail_url"`
 	VideoId      string `json:"video_id"`
+	Category     string `json:"category"`
 	Sent         bool   `json:"sent"`
 	Edition      int    `json:"edition"`
 	EditionId    string `json:"edition_id"`

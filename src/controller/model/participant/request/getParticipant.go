@@ -3,9 +3,10 @@ package participant_request
 type GetParticipant struct {
 	VideoId         string `form:"videoId"`
 	EditionId       string `form:"editionId"`
-	NotVideoId			string `form:"notVideoId"`
+	NotVideoId      string `form:"notVideoId"`
 	CursorCreatedAt string `form:"cursorCreatedAt"`
 	CursorUserTime  string `form:"cursorUserTime"`
+	Category        string `form:"category" validate:"category"`
 	BestTime        bool   `form:"bestTime"`
 	WorstTime       bool   `form:"worstTime"`
 	Width           int    `form:"width"`

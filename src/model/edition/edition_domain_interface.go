@@ -1,8 +1,14 @@
 package edition_domain
 
 type Top struct {
-	Gain int
-	Top  int
+	Gain     int
+	Top      int
+	Category string
+}
+
+type Challenge struct {
+	Challenge string
+	Category  string
 }
 
 type EditionDomainInterface interface {
@@ -14,8 +20,8 @@ type EditionDomainInterface interface {
 	SetClosingDate(string)
 	GetRules() string
 	SetRules(string)
-	GetChallenge() string
-	SetChallenge(string)
+	GetChallenge() []Challenge
+	SetChallenge([]Challenge)
 	GetNumber() int
 	SetNumber(int)
 	GetTops() []Top
@@ -24,15 +30,15 @@ type EditionDomainInterface interface {
 	SetCreatedAt(string)
 }
 
-func NewEditionDomain(id, startDate, closingDate, rules, challenge string, tops []Top, number int, created_at string) EditionDomainInterface {
+func NewEditionDomain(id, startDate, closingDate, rules string, tops []Top, challenge []Challenge, number int, created_at string) EditionDomainInterface {
 	return &edition{
-		id: 				 id,
+		id:          id,
 		startDate:   startDate,
 		closingDate: closingDate,
 		rules:       rules,
 		challenge:   challenge,
-		number: 		 number,
+		number:      number,
 		tops:        tops,
-		created_at: created_at,
+		created_at:  created_at,
 	}
 }

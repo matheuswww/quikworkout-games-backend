@@ -5,10 +5,10 @@ type edition struct {
 	startDate   string
 	closingDate string
 	rules       string
-	challenge	  string
+	created_at  string
 	number      int
 	tops        []Top
-	created_at  string
+	challenge	  []Challenge
 }
 
 func (e *edition) GetId() string {
@@ -43,12 +43,12 @@ func (e *edition) SetRules(r string) {
 	e.rules = r
 }
 
-func (e *edition) GetChallenge() string {
+func (e *edition) GetChallenge() []Challenge {
 	return e.challenge
 }
 
-func (e *edition) SetChallenge(r string) {
-	e.challenge = r
+func (e *edition) SetChallenge(c []Challenge) {
+	e.challenge = c
 }
 
 func (e *edition) GetNumber() int {

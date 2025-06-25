@@ -3,13 +3,14 @@ package participant_domain
 import "time"
 
 type participant struct {
-	videoID        string
-	userID         string
-	editionID      string
-	userTime 			 *time.Time
-	checked				 bool
-	sent 					 bool
-	createdAt      string
+	videoID   string
+	userID    string
+	editionID string
+	userTime  *time.Time
+	checked   bool
+	sent      bool
+	category  string
+	createdAt string
 }
 
 func (p *participant) GetVideoID() string {
@@ -58,6 +59,14 @@ func (p *participant) GetSent() bool {
 
 func (p *participant) SetSent(s bool) {
 	p.sent = s
+}
+
+func (p *participant) GetCategory() string {
+	return p.category
+}
+
+func (p *participant) SetCategory(c string) {
+	p.category = c
 }
 
 func (p *participant) GetCreatedAt() string {

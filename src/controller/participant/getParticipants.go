@@ -6,7 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
+	custom_validator "github.com/matheuswww/quikworkout-games-backend/src/configuration/validation/customValidator"
 	default_validator "github.com/matheuswww/quikworkout-games-backend/src/configuration/validation/defaultValidator"
+	get_custom_validator "github.com/matheuswww/quikworkout-games-backend/src/controller/model"
 	participant_request "github.com/matheuswww/quikworkout-games-backend/src/controller/model/participant/request"
 	"go.uber.org/zap"
 )
@@ -17,6 +19,13 @@ func (pc *participantController) GetParticipants(c *gin.Context) {
 	if err := c.ShouldBindQuery(&getParticipantRequest); err != nil {
 		logger.Error("Error trying convert fileds", errors.New("error trying convert fields"), zap.String("journey", "GetParticipant Controller"))
 		restErr := default_validator.HandleDefaultValidatorErrors(err)
+		c.JSON(restErr.Code, restErr)
+		return
+	}
+	translator, customErr := get_custom_validator.CustomValidator(getParticipantRequest)
+	if customErr != nil {
+		restErr := custom_validator.HandleCustomValidatorErrors(translator, customErr)
+		logger.Error("Error trying convert fields", errors.New("invalid fields"), zap.String("journey", "GetParticipant Controller"))
 		c.JSON(restErr.Code, restErr)
 		return
 	}

@@ -33,7 +33,15 @@ func (ec *editionController) GetEdition(c *gin.Context) {
 		for _,top := range edition.GetTops() {
 			tops = append(tops, edition_response.Top{
 				Gain: top.Gain,
-				Top: top.Top,		
+				Top: top.Top,
+				Category: top.Category,
+			})
+		}
+		var challenges []edition_response.Challenge
+		for _,challenge := range edition.GetChallenge() {
+			challenges = append(challenges, edition_response.Challenge{
+				Challenge: challenge.Challenge,
+				Category: challenge.Category,
 			})
 		}
 		editionsJson = append(editionsJson, edition_response.Edition{
@@ -41,7 +49,7 @@ func (ec *editionController) GetEdition(c *gin.Context) {
 			StartDate: edition.GetStartDate(),
 			ClosingDate: edition.GetClosingDate(),
 			Rules: edition.GetRules(),
-			Challenge: edition.GetChallenge(),
+			Challenge: challenges,
 			Number: edition.GetNumber(),
 			Tops: tops,
 			CreatedAt: edition.GetCreatedAt(),

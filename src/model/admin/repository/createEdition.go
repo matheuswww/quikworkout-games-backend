@@ -35,8 +35,8 @@ func (ar *adminRepository) CreateEdition(createEditionRequest *admin_request.Cre
 	}
 
 	id := uuid.NewString()
-	query = "INSERT INTO edition (edition_id, start_date, closing_date, rules, challenge, clothing_id) VALUES (?, ?, ?, ?, ?, ?)"
-	_, err = tx.ExecContext(ctx, query, id, createEditionRequest.StartDate, createEditionRequest.ClosingDate, createEditionRequest.Rules, createEditionRequest.Challenge, clothing_id)
+	query = "INSERT INTO edition (edition_id, start_date, closing_date, rules, clothing_id) VALUES (?, ?, ?, ?, ?)"
+	_, err = tx.ExecContext(ctx, query, id, createEditionRequest.StartDate, createEditionRequest.ClosingDate, createEditionRequest.Rules, clothing_id)
 	if err != nil {
 		logger.Error("Error trying ExecContext", err, zap.String("journey", "CreateEdition Repository"))
 		err = tx.Rollback()
@@ -48,8 +48,22 @@ func (ar *adminRepository) CreateEdition(createEditionRequest *admin_request.Cre
 	}
 
 	for i := 0; i < len(createEditionRequest.Tops); i++ {
-		query = "INSERT INTO top (edition_id, top, gain) VALUES (?, ?, ?)"
-		_, err := tx.ExecContext(ctx, query, id, createEditionRequest.Tops[i].Top, createEditionRequest.Tops[i].Gain)
+		query = "INSERT INTO top (edition_id, top, gain, category) VALUES (?, ?, ?, ?)"
+		_, err := tx.ExecContext(ctx, query, id, createEditionRequest.Tops[i].Top, createEditionRequest.Tops[i].Gain, createEditionRequest.Tops[i].Category)
+		if err != nil {
+			logger.Error("Error trying ExecContext", err, zap.String("journey", "CreateEdition Repository"))
+			err = tx.Rollback()
+			if err != nil {
+				logger.Error("Error trying rollback", err, zap.String("journey", "CreateEdition Repository"))
+				return rest_err.NewInternalServerError("server error")
+			}
+			return rest_err.NewInternalServerError("server error")
+		}
+	}
+
+	for i := 0; i < len(createEditionRequest.Challenge); i++ {
+		query = "INSERT INTO challenge (edition_id, challenge, category) VALUES (?, ?, ?)"
+		_, err := tx.ExecContext(ctx, query, id, createEditionRequest.Challenge[i].Challenge, createEditionRequest.Challenge[i].Category)
 		if err != nil {
 			logger.Error("Error trying ExecContext", err, zap.String("journey", "CreateEdition Repository"))
 			err = tx.Rollback()

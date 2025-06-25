@@ -18,24 +18,34 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 	defer cancel()
 
 	var closing_date string
-	if getParticipantRequest.EditionId == "" {
-		var edition_id string
-		query := "SELECT edition_id, closing_date FROM edition ORDER BY created_at DESC LIMIT 1"
-		err := pr.mysql.QueryRowContext(ctx, query).Scan(&edition_id, &closing_date)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipant Repository"))
-				return nil,rest_err.NewNotFoundError("no edition found")
-			}
-			logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipant Repository"))
-			return nil, rest_err.NewInternalServerError("server error")
-		}
-		getParticipantRequest.EditionId = edition_id
-	}
-
+	var query string
 	var args []any
+	if getParticipantRequest.EditionId == "" {
+		query = "SELECT edition_id, closing_date FROM edition ORDER BY created_at DESC LIMIT 1"
+	} else {
+		query = "SELECT edition_id, closing_date FROM edition WHERE edition_id = ?"
+		args = append(args, getParticipantRequest.EditionId)
+	}
+	
+	var edition_id string
+	err := pr.mysql.QueryRowContext(ctx, query, args...).Scan(&edition_id, &closing_date)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipant Repository"))
+			return nil,rest_err.NewNotFoundError("no edition found")
+		}
+		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipant Repository"))
+		return nil, rest_err.NewInternalServerError("server error")
+	}
+	getParticipantRequest.EditionId = edition_id
+	args = nil
+
 	args = append(args, getParticipantRequest.EditionId)
-	query := "SELECT p.video_id, u.user_id, u.name, u.user, p.edition_id, p.user_time, p.placing, p.created_at FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id WHERE p.edition_id = ? AND p.checked IS true AND p.sent IS true AND desqualified IS NULL AND "
+	query = "SELECT p.video_id, u.user_id, u.name, p.category, u.user, p.edition_id, p.user_time, p.placing, p.created_at FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id WHERE p.edition_id = ? AND p.checked IS true AND p.sent IS true AND desqualified IS NULL AND "
+	if getParticipantRequest.Category != "" {
+		query += "p.category = ? AND "
+		args = append(args, getParticipantRequest.Category)
+	}
 	if getParticipantRequest.NotVideoId != "" {
 		query += "p.video_id != ? AND "
 		args = append(args, getParticipantRequest.NotVideoId)
@@ -76,9 +86,9 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 	defer rows.Close()
 	var participants []participant_response.Participant
 	for rows.Next() {
-		var video_id, user_id, name, user, edition_id, created_at string
+		var video_id, user_id, name, category, user, edition_id, created_at string
 		var userTime, placing sql.NullString
-		err = rows.Scan(&video_id, &user_id, &name, &user, &edition_id, &userTime, &placing, &created_at)
+		err = rows.Scan(&video_id, &user_id, &name, &category, &user, &edition_id, &userTime, &placing, &created_at)
 		if err != nil {
 			logger.Error("Error trying Scan", err, zap.String("journey", "GetParticipant Repository"))
 			return nil, rest_err.NewInternalServerError("server error")
@@ -96,6 +106,7 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 			UserTime: userTimeValid,
 			Edition_id: edition_id,
 			Placing: userPlacingValid,
+			Category: category,
 			User: participant_response.User{
 				UserId: user_id,
 				Name: name,

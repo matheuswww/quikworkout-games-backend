@@ -25,7 +25,7 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 		return nil, nil, rest_err.NewInternalServerError("server error")
 	}
 
-	query = "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.desqualified, p.sent, p.checked, p.created_at, t.gain FROM participant AS p JOIN edition AS e ON p.edition_id = e.edition_id LEFT JOIN top AS t ON p.placing = t.top AND t.edition_id = p.edition_id AND p.placing IS NOT NULL WHERE p.user_id = ? AND "
+	query = "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.desqualified, p.category, p.sent, p.checked, p.created_at, t.gain FROM participant AS p JOIN edition AS e ON p.edition_id = e.edition_id LEFT JOIN top AS t ON p.placing = t.top AND t.edition_id = p.edition_id AND t.category = p.category AND p.placing IS NOT NULL WHERE p.user_id = ? AND "
 	var args []any
 	args = append(args, user_domain.GetId())
 	if getParticipationsRequest.VideoId != "" {
@@ -56,12 +56,12 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 
 	var participants []user_response.Participantion
 	for rows.Next() {
-		var video_id, edition_id, created_at string
+		var video_id, edition_id, category, created_at string
 		var number int
 		var gain sql.NullInt64
 		var checked, sent bool
 		var placing, user_time, desqualified sql.NullString
-		err := rows.Scan(&video_id, &placing, &edition_id, &number, &user_time, &desqualified, &sent, &checked, &created_at, &gain)
+		err := rows.Scan(&video_id, &placing, &edition_id, &number, &user_time, &desqualified, &category, &sent, &checked, &created_at, &gain)
 		if err != nil {
 			logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipantions Repository"))
 			return nil, nil, rest_err.NewInternalServerError("server error")
@@ -90,6 +90,7 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 			Sent: sent,
 			Gain: validGain,
 			UserTime: validUserTime,
+			Category: category,
 			Desqualified: validDesqualified,
 			Checked: checked,
 			CreatedAt: created_at,
