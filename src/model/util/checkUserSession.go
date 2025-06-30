@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
@@ -46,6 +47,7 @@ func CheckUserGames(sessionIdFromCookie, user_id string) *rest_err.RestErr {
 		logger.Error("Error trying CheckUser", err, zap.String("journey", "CheckUser"))
 		return rest_err.NewInternalServerError("server error")
 	}
+	fmt.Println(sessionIdFromCookie, sessionId)
 	if sessionIdFromCookie != sessionId {
 		logger.Error("Error invalid session", errors.New("invalid session"), zap.String("journey", "CheckUser Repository"))
 		return rest_err.NewUnauthorizedError("cookie inválido")

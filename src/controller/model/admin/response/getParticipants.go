@@ -14,6 +14,7 @@ type Participant struct {
 	Sent         bool   `json:"sent"`
 	Edition      int    `json:"edition"`
 	EditionId    string `json:"edition_id"`
+	Challenge    string `json:"challenge"`
 	Placing      any    `json:"placing"`
 	Gain         any    `json:"gain"`
 	UserTime     any    `json:"user_time"`

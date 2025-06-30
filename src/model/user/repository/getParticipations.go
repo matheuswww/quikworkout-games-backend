@@ -53,6 +53,7 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipantions Repository"))
 		return nil, nil, rest_err.NewInternalServerError("server error")
 	}
+	defer rows.Close()
 
 	var participants []user_response.Participantion
 	for rows.Next() {
