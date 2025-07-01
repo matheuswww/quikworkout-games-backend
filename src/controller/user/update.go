@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
+	"github.com/matheuswww/quikworkout-games-backend/src/configuration/recaptcha"
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/rest_err"
 	custom_validator "github.com/matheuswww/quikworkout-games-backend/src/configuration/validation/customValidator"
 	default_validator "github.com/matheuswww/quikworkout-games-backend/src/configuration/validation/defaultValidator"
@@ -72,6 +73,15 @@ func (uc *userController) Update(c *gin.Context) {
 }
 
 func saveNewImg(c *gin.Context, updateRequest *user_request.Update, id string) error {
+	if updateRequest.Image != nil {
+		captcha := recaptcha.NewRecaptcha()
+		restErr := captcha.ValidateRecaptcha(updateRequest.Token)
+		if restErr != nil {
+			c.JSON(restErr.Code, restErr)
+			return errors.New("recaptcha error")
+		}
+	}
+
 	const maxSize = 1 * 1024 * 1024
 		if updateRequest.Image.Size > maxSize {
 			restErr := rest_err.NewBadRequestError("image size must be less than or equal to 1MB")
