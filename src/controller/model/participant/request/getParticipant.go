@@ -8,7 +8,6 @@ type GetParticipant struct {
 	CursorUserTime  string `form:"cursorUserTime"`
 	Category        string `form:"category" validate:"category"`
 	BestTime        bool   `form:"bestTime"`
-	WorstTime       bool   `form:"worstTime"`
 	Width           int    `form:"width"`
 	Autoplay        bool   `form:"autoplay"`
 	Muted           bool   `form:"muted"`

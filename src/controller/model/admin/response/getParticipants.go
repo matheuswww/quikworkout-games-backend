@@ -3,6 +3,7 @@ package admin_response
 type GetParticipants struct {
 	Participants []Participant `json:"participants"`
 	ClosingDate  string        `json:"closing_date"`
+	More         bool          `json:"more"`
 }
 
 type Participant struct {

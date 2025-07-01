@@ -3,6 +3,7 @@ package user_response
 type GetParticipations struct {
 	Participations []Participantion `json:"participations"`
 	User           User             `json:"user"`
+	More           bool             `json:"more"`
 }
 
 type Participantion struct {

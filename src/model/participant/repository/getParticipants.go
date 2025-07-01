@@ -44,17 +44,26 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 	args = nil
 
 	args = append(args, getParticipantRequest.EditionId)
-	query = "SELECT p.video_id, u.user_id, u.name, p.category, u.user, p.edition_id, p.user_time, p.placing, c.challenge, p.created_at FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id JOIN challenge AS c ON p.edition_id = c.edition_id AND c.category = p.category WHERE p.edition_id = ? AND p.checked IS true AND p.sent IS true AND desqualified IS NULL AND "
+	moreDataArgs := []any{ getParticipantRequest.EditionId }
+	from := "FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id JOIN challenge AS c ON p.edition_id = c.edition_id AND c.category = p.category WHERE p.edition_id = ? AND p.checked IS true AND p.sent IS true AND desqualified IS NULL AND "
+	moreData := "SELECT 1 " + from
+	query = "SELECT p.video_id, u.user_id, u.name, p.category, u.user, p.edition_id, p.user_time, p.placing, c.challenge, p.created_at " + from
 	if getParticipantRequest.Category != "" {
+		moreData += "p.category = ? AND "
 		query += "p.category = ? AND "
+		moreDataArgs = append(moreDataArgs, getParticipantRequest.Category)
 		args = append(args, getParticipantRequest.Category)
 	}
 	if getParticipantRequest.NotVideoId != "" {
+		moreData += "p.video_id != ? AND "
 		query += "p.video_id != ? AND "
+		moreDataArgs = append(moreDataArgs, getParticipantRequest.NotVideoId)
 		args = append(args, getParticipantRequest.NotVideoId)
 	}
 	if getParticipantRequest.VideoId != "" {
+		moreData += "p.video_id = ? AND "
 		query += "p.video_id = ? AND "
+		moreDataArgs = append(moreDataArgs, getParticipantRequest.VideoId)
 		args = append(args, getParticipantRequest.VideoId)
 	}
 	if getParticipantRequest.CursorCreatedAt != "" {
@@ -62,24 +71,13 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 		args = append(args, getParticipantRequest.CursorCreatedAt)
 	}
 	if getParticipantRequest.CursorUserTime != "" {
-		signal := "> ?"
-		if getParticipantRequest.WorstTime {
-			signal = "< ?"
-		}
-		query += "(p.user_time "+signal+" OR p.user_time IS NULL) AND "
+		query += "(p.user_time > ? OR p.user_time IS NULL) AND "
 		args = append(args, getParticipantRequest.CursorUserTime)
 	}
 	query = query[:len(query) - 4]
 
-	query += "ORDER BY "
-	query += "p.user_time IS NULL, "
-	if !getParticipantRequest.WorstTime {
-		query += "p.user_time ASC, "
-	} else if getParticipantRequest.WorstTime {
-		query += "p.user_time DESC, "
-	}
-	query += "p.created_at DESC "
-	query += "LIMIT 10"
+	order := "ORDER BY p.user_time IS NULL,p.user_time ASC, p.created_at DESC "
+	query += order+"LIMIT 10 "
 
 	rows, err := pr.mysql.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -125,8 +123,32 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 		return nil, rest_err.NewNotFoundError("no participants were found")
 	}
 	
+	last := participants[len(participants)-1]
+	if last.UserTime != nil {
+		moreData += "(p.user_time > ? OR p.user_time IS NULL) AND "
+		moreDataArgs = append(moreDataArgs, last.UserTime)
+	} else {
+		if getParticipantRequest.CursorUserTime != "" {
+			moreData += "(p.user_time > ? OR p.user_time IS NULL) AND "
+			moreDataArgs = append(moreDataArgs, getParticipantRequest.CursorUserTime)
+		}
+		moreData += "p.created_at < ? AND "
+		moreDataArgs = append(moreDataArgs, last.CreatedAt)
+	}
+
+	moreData = moreData[:len(moreData) - 4]
+	moreData += order+ "LIMIT 1"
+
+	more := false
+	err = pr.mysql.QueryRowContext(ctx, moreData, moreDataArgs...).Scan(&more)
+	if err != nil && err != sql.ErrNoRows {
+		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipant Repository"))
+		return nil, rest_err.NewInternalServerError("server error")
+	}
+
 	return &participant_response.GetParticipant{
 		Particiapants: participants,
 		ClosingDate: closing_date,
+		More: more,
 	}, nil
 }

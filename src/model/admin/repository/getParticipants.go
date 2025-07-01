@@ -44,14 +44,21 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	args = nil
 
 	args = append(args, getParticipantsRequest.EditionId)
-	query = "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.desqualified, p.category, c.challenge, p.sent, p.checked, u.user_id, u.name, u.user, t.gain, uq.email, p.created_at FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id JOIN user AS uq ON uq.user_id = u.user_id JOIN edition AS e ON p.edition_id = e.edition_id LEFT JOIN top AS t ON t.top = p.placing AND t.edition_id = p.edition_id AND t.category = p.category JOIN challenge AS c ON c.edition_id = p.edition_id AND c.category = p.category WHERE p.edition_id = ? AND "
+	moreDataArgs := []any{getParticipantsRequest.EditionId}
+	from := "FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id JOIN user AS uq ON uq.user_id = u.user_id JOIN edition AS e ON p.edition_id = e.edition_id LEFT JOIN top AS t ON t.top = p.placing AND t.edition_id = p.edition_id AND t.category = p.category JOIN challenge AS c ON c.edition_id = p.edition_id AND c.category = p.category WHERE p.edition_id = ? AND "
+	moreDataQuery := "SELECT 1 " + from
+	query = "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.desqualified, p.category, c.challenge, p.sent, p.checked, u.user_id, u.name, u.user, t.gain, uq.email, p.created_at " + from
 	if getParticipantsRequest.Category != "" {
 		query += "p.category = ? AND "
+		moreDataQuery += "p.category = ? AND "
 		args = append(args, getParticipantsRequest.Category)
+		moreDataArgs = append(moreDataArgs, getParticipantsRequest.Category)
 	}
 	if getParticipantsRequest.VideoId != "" {
 		query += "p.video_id = ? AND "
+		moreDataQuery += "p.video_id = ? AND "
 		args = append(args, getParticipantsRequest.VideoId)
+		moreDataArgs = append(moreDataArgs, getParticipantsRequest.VideoId)
 	}
 	if getParticipantsRequest.CursorCreatedAt != "" {
 		query += "(p.created_at < ? OR p.user_time IS NOT NULL) AND "
@@ -63,7 +70,8 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	}
 	query = query[:len(query)-4]
 
-	query += "ORDER BY p.desqualified ASC, p.user_time IS NOT NULL, p.user_time ASC, p.created_at DESC LIMIT 10"
+	order := "ORDER BY p.desqualified ASC, p.user_time IS NOT NULL, p.user_time ASC, p.created_at DESC "
+	query += order+"LIMIT 10"
 
 	rows, err := ar.mysql.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -126,8 +134,26 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 		return nil, nil, rest_err.NewNotFoundError("no participants were found")
 	}
 
+	last := participants[len(participants)-1]
+	moreDataQuery += "(p.created_at < ? OR p.user_time IS NOT NULL) AND "
+	moreDataArgs = append(moreDataArgs, last.CreatedAt)
+	if last.UserTime != nil {
+		moreDataQuery += "p.user_time > ? AND "
+		moreDataArgs = append(moreDataArgs, last.UserTime)
+	}
+	moreDataQuery = moreDataQuery[:len(moreDataQuery)-4]
+	moreDataQuery += order
+
+	more := false
+	err = ar.mysql.QueryRowContext(ctx, moreDataQuery, moreDataArgs...).Scan(&more)
+	if err != nil && err != sql.ErrNoRows {
+		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipants Repository"))
+		return nil, nil, rest_err.NewInternalServerError("server error")
+	}
+
 	return &admin_response.GetParticipants{
 		Participants: participants,
 		ClosingDate:  closing_date,
+		More:         more,
 	}, ar.mysql, nil
 }

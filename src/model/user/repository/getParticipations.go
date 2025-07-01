@@ -25,25 +25,36 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 		return nil, nil, rest_err.NewInternalServerError("server error")
 	}
 
-	query = "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.desqualified, p.category, p.sent, p.checked, p.created_at, t.gain FROM participant AS p JOIN edition AS e ON p.edition_id = e.edition_id LEFT JOIN top AS t ON p.placing = t.top AND t.edition_id = p.edition_id AND t.category = p.category AND p.placing IS NOT NULL WHERE p.user_id = ? AND "
+	from := "FROM participant AS p JOIN edition AS e ON p.edition_id = e.edition_id LEFT JOIN top AS t ON p.placing = t.top AND t.edition_id = p.edition_id AND t.category = p.category AND p.placing IS NOT NULL WHERE p.user_id = ? AND "
+	moreDataQuery := "SELECT 1 " + from
+	query = "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.desqualified, p.category, p.sent, p.checked, p.created_at, t.gain " + from
 	var args []any
+	var moreDataArgs []any
 	args = append(args, user_domain.GetId())
+	moreDataArgs = append(moreDataArgs, user_domain.GetId())
 	if getParticipationsRequest.VideoId != "" {
 		query += "p.video_id = ? AND "
+		moreDataQuery += "p.video_id = ? AND "
 		args = append(args, getParticipationsRequest.VideoId)
+		moreDataArgs = append(moreDataArgs, getParticipationsRequest.VideoId)
 	}
 	if getParticipationsRequest.EditionId != "" {
 		query += "p.edition_id = ? AND "
+		moreDataQuery += "p.edition_id = ? AND "
 		args = append(args, getParticipationsRequest.EditionId)
+		moreDataArgs = append(moreDataArgs, getParticipationsRequest.EditionId)
 	}
 	if getParticipationsRequest.Cursor != "" {
 		query += "p.created_at < ? AND "
+		moreDataQuery += "p.created_at < ? AND "
 		args = append(args, getParticipationsRequest.Cursor)
+		moreDataArgs = append(moreDataArgs, getParticipationsRequest.Cursor)
 	}
 	if len(args) > 0 {
 		query = query[:len(query) - 4]
 	}
-	query += "ORDER BY created_at DESC LIMIT ?"
+	order := "ORDER BY p.created_at DESC "
+	query += order + "LIMIT ?"
 	if getParticipationsRequest.Limit > 10 || getParticipationsRequest.Limit == 0 {
 		getParticipationsRequest.Limit = 10
 	}
@@ -101,6 +112,20 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 	if len(participants) == 0 {
 		return nil, nil, rest_err.NewNotFoundError("no participation was found")
 	}
+
+	last := participants[len(participants)-1]
+	moreDataQuery += "p.created_at < ? "
+	moreDataArgs = append(moreDataArgs, last.CreatedAt)
+
+	moreDataQuery += order
+
+	more := false
+	err = ur.mysql.QueryRowContext(ctx, moreDataQuery, moreDataArgs...).Scan(&more)
+	if err != nil && err != sql.ErrNoRows {
+		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipantions Repository"))
+		return nil, nil, rest_err.NewInternalServerError("server error")
+	}
+
 	return &user_response.GetParticipations{
 		Participations: participants,
 		User: user_response.User{
@@ -108,5 +133,6 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 			Name: name,
 			User: user,
 		},
+		More: more,
 	}, ur.mysql, nil
 }
