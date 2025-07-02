@@ -82,9 +82,9 @@ func saveNewImg(c *gin.Context, updateRequest *user_request.Update, id string) e
 		}
 	}
 
-	const maxSize = 1 * 1024 * 1024
+	const maxSize = 3 * 1024 * 1024
 		if updateRequest.Image.Size > maxSize {
-			restErr := rest_err.NewBadRequestError("image size must be less than or equal to 1MB")
+			restErr := rest_err.NewBadRequestError("image size must be less than or equal to 3MB")
 			c.JSON(restErr.Code, restErr)
 			return errors.New("invalid size")
 		}

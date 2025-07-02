@@ -1,9 +1,10 @@
 package participant_response
 
 type GetParticipant struct {
-	Particiapants []Participant `json:"participants"`
-	ClosingDate   string        `json:"closing_date"`
-	More					bool					`json:"more"`
+	Particiapants    []Participant `json:"participants"`
+	ClosingDate      string        `json:"closing_date"`
+	VideoReleaseTime string        `json:"video_release_time"`
+	More             bool          `json:"more"`
 }
 
 type Participant struct {
