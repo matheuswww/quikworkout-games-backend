@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
@@ -12,6 +13,11 @@ import (
 	participant_response "github.com/matheuswww/quikworkout-games-backend/src/controller/model/participant/response"
 	"go.uber.org/zap"
 )
+
+var monthNames = []string{
+	"janeiro", "fevereiro", "março", "abril", "maio", "junho",
+	"julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
+}
 
 func (pr *participantRepository) GetParticipants(getParticipantRequest *participant_request.GetParticipant) (*participant_response.GetParticipant, *rest_err.RestErr) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
@@ -40,6 +46,30 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipant Repository"))
 		return nil, rest_err.NewInternalServerError("server error")
 	}
+
+	layout := "2006-01-02"
+	t, err := time.Parse(layout, closing_date)
+	if err != nil {
+		logger.Error("Error trying parseDate", err, zap.String("journey", "GetParticipant Repository"))
+		return nil, rest_err.NewInternalServerError("server error")
+	}
+	
+	t = t.AddDate(0, 0, 10)
+	t = time.Date(t.Year(), t.Month(), t.Day(), 16, 0, 0, 0, t.Location())
+	
+	if !time.Now().After(t) {
+		month := monthNames[int(t.Month())-1]
+		dia := t.Day()
+		hora := t.Format("15:04")
+		msg := fmt.Sprintf("Os resultados serão liberados em %d de %s às %s", dia, month, hora)
+		return &participant_response.GetParticipant{
+			Particiapants:    nil,
+			ClosingDate: closing_date,
+			VideoReleaseTime: msg,
+			More: false,
+		}, nil
+	}
+
 	getParticipantRequest.EditionId = edition_id
 	args = nil
 
@@ -148,7 +178,8 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 
 	return &participant_response.GetParticipant{
 		Particiapants: participants,
-		ClosingDate: closing_date,
 		More: more,
+		ClosingDate: "",
+		VideoReleaseTime: "",
 	}, nil
 }
