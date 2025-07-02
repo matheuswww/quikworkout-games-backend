@@ -20,7 +20,7 @@ type userService struct {
 }
 
 type UserService interface {
-	CreateAccount(userDomain user_domain.UserDomainInterface, saveImg func() error, id, token string) *rest_err.RestErr
+	CreateAccount(userDomain user_domain.UserDomainInterface, saveImg func() *rest_err.RestErr, id, token string) *rest_err.RestErr
 	EnterAccount(userDomain user_domain.UserDomainInterface) *rest_err.RestErr
 	GetAccount(userDomain user_domain.UserDomainInterface, sessionId string) *rest_err.RestErr
 	GetParticipations(user_domain user_domain.UserDomainInterface, getParticipartRequest *user_request.GetParticipations) (*user_response.GetParticipations, *rest_err.RestErr)

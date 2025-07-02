@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (ur *userRepository) CreateAccount(userDomain user_domain.UserDomainInterface, sessionIdFromCookie string) *rest_err.RestErr {
+func (ur *userRepository) CreateAccount(userDomain user_domain.UserDomainInterface, sessionIdFromCookie string, saveImg func() *rest_err.RestErr) *rest_err.RestErr {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -50,6 +50,11 @@ func (ur *userRepository) CreateAccount(userDomain user_domain.UserDomainInterfa
 	if count != 0 {
 		logger.Error("Error user already exists", errors.New("user already exists"), zap.String("journey", "CreateAccount Repository"))
 		return rest_err.NewBadRequestError("usuário já cadastrado")
+	}
+
+	restErr := saveImg()
+	if restErr != nil {
+		return restErr
 	}
 
 	query = "INSERT INTO user_games (user_id, name, user, category, earnings, session_id) VALUES (?, ?, ?, ?, ?, ?)"

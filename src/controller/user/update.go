@@ -12,6 +12,7 @@ import (
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/recaptcha"
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/rest_err"
+	"github.com/matheuswww/quikworkout-games-backend/src/configuration/sightengine"
 	custom_validator "github.com/matheuswww/quikworkout-games-backend/src/configuration/validation/customValidator"
 	default_validator "github.com/matheuswww/quikworkout-games-backend/src/configuration/validation/defaultValidator"
 	get_custom_validator "github.com/matheuswww/quikworkout-games-backend/src/controller/model"
@@ -57,8 +58,9 @@ func (uc *userController) Update(c *gin.Context) {
 	}
 	userDomain := user_domain.NewUserDomain(cookie.Id, "", "", "", 0, "")
 	if updateRequest.Image != nil {
-		err = saveNewImg(c, &updateRequest, userDomain.GetId())
-		if err != nil {
+		restErr = saveNewImg(c, &updateRequest, userDomain.GetId())
+		if restErr != nil {
+			c.JSON(restErr.Code, restErr)
 			return
 		}
 	}
@@ -72,21 +74,19 @@ func (uc *userController) Update(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func saveNewImg(c *gin.Context, updateRequest *user_request.Update, id string) error {
+func saveNewImg(c *gin.Context, updateRequest *user_request.Update, id string) *rest_err.RestErr {
 	if updateRequest.Image != nil {
 		captcha := recaptcha.NewRecaptcha()
 		restErr := captcha.ValidateRecaptcha(updateRequest.Token)
 		if restErr != nil {
-			c.JSON(restErr.Code, restErr)
-			return errors.New("recaptcha error")
+			return restErr
 		}
 	}
 
 	const maxSize = 3 * 1024 * 1024
 		if updateRequest.Image.Size > maxSize {
-			restErr := rest_err.NewBadRequestError("image size must be less than or equal to 3MB")
-			c.JSON(restErr.Code, restErr)
-			return errors.New("invalid size")
+			logger.Error("Error trying save image", errors.New("image size exceeds limit"), zap.String("journey", "Update Controller"))
+			return rest_err.NewBadRequestError("image size must be less than or equal to 3MB")
 		}
 		ext := strings.ToLower(filepath.Ext(updateRequest.Image.Filename))
 		allowedExts := map[string]bool{
@@ -95,25 +95,26 @@ func saveNewImg(c *gin.Context, updateRequest *user_request.Update, id string) e
 			".png":  true,
 		}
 		if !allowedExts[ext] {
-			restErr := rest_err.NewBadRequestError("image extension must be jpg, jpeg, or png")
-			c.JSON(restErr.Code, restErr)
-			return errors.New("invalid extension")
+			logger.Error("Error trying save image", errors.New("invalid image extension"), zap.String("journey", "Update Controller"))
+			return rest_err.NewBadRequestError("image extension must be jpg, jpeg, or png")
 		}
 
+		
 		absPath, err := filepath.Abs("images")
 		if err != nil {
 			logger.Error("Error trying update image", err, zap.String("journey", "Update Controller"))
-			restErr := rest_err.NewInternalServerError("server error")
-			c.JSON(restErr.Code, restErr)
-			return err
+			return rest_err.NewInternalServerError("server error")
+		}
+		
+		restErr := sightengine.CheckImage(updateRequest.Image, fmt.Sprintf("%s%s", id, ext))
+		if restErr != nil {
+			return restErr
 		}
 		
 		files, err := os.ReadDir(absPath)
 		if err != nil {
 			logger.Error("Error reading images directory", err, zap.String("journey", "Update Controller"))
-			restErr := rest_err.NewInternalServerError("server error")
-			c.JSON(restErr.Code, restErr)
-			return err
+			return rest_err.NewInternalServerError("server error")
 		}
 	
 		for _, file := range files {
@@ -121,9 +122,7 @@ func saveNewImg(c *gin.Context, updateRequest *user_request.Update, id string) e
 				err = os.Remove(filepath.Join(absPath, file.Name()))
 				if err != nil {
 					logger.Error("Error deleting old image", err, zap.String("journey", "Update Controller"))
-					restErr := rest_err.NewInternalServerError("server error")
-					c.JSON(restErr.Code, restErr)
-					return err
+					return rest_err.NewInternalServerError("server error")
 				}
 				break
 			}
@@ -133,9 +132,7 @@ func saveNewImg(c *gin.Context, updateRequest *user_request.Update, id string) e
 		err = c.SaveUploadedFile(updateRequest.Image, fmt.Sprintf("%s/%s%s", absPath, id, ext))
 		if err != nil {
 			logger.Error("Error trying get update image", err, zap.String("journey", "Update Controller"))
-			restErr := rest_err.NewInternalServerError("server error")
-			c.JSON(restErr.Code, restErr)
-			return err
+			return rest_err.NewInternalServerError("server error")
 		}
 		return nil
 }

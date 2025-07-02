@@ -20,7 +20,7 @@ type userRepository struct {
 }
 
 type UserRepository interface {
-	CreateAccount(userDomain user_domain.UserDomainInterface, sessionIdFromCookie string) *rest_err.RestErr
+	CreateAccount(userDomain user_domain.UserDomainInterface, sessionIdFromCookie string, saveImg func() *rest_err.RestErr) *rest_err.RestErr
 	EnterAccount(userDomain user_domain.UserDomainInterface) *rest_err.RestErr
 	GetAccount(userDomain user_domain.UserDomainInterface, sessionIdFromCookie string) *rest_err.RestErr
 	GetParticipations(user_domain user_domain.UserDomainInterface, getParticipationsRequest *user_request.GetParticipations) (*user_response.GetParticipations, *sql.DB, *rest_err.RestErr)

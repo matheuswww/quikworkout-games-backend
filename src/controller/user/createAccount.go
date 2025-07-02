@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/rest_err"
+	"github.com/matheuswww/quikworkout-games-backend/src/configuration/sightengine"
 	custom_validator "github.com/matheuswww/quikworkout-games-backend/src/configuration/validation/customValidator"
 	default_validator "github.com/matheuswww/quikworkout-games-backend/src/configuration/validation/defaultValidator"
 	get_custom_validator "github.com/matheuswww/quikworkout-games-backend/src/controller/model"
@@ -60,14 +61,25 @@ func (uc *userController) CreateAccount(c *gin.Context) {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
+	
 	userDomain := user_domain.NewUserDomain(cookie.Id, "", createAccountRequest.User, createAccountRequest.Category, 0, "")
-	restErr := uc.userService.CreateAccount(userDomain, func() error {
+	restErr := uc.userService.CreateAccount(userDomain, func() *rest_err.RestErr {
 		absPath, err := filepath.Abs("images")
 		if err != nil {
-			return err
+			logger.Error("Error trying saveImg", err, zap.String("journey", "CreateAccount Controller"))
+			return rest_err.NewInternalServerError("server error")
+		}
+		restErr := sightengine.CheckImage(createAccountRequest.Image, fmt.Sprintf("%s%s", userDomain.GetId(), ext))
+		if restErr != nil {
+			return restErr
 		}
 		ext := filepath.Ext(createAccountRequest.Image.Filename)
-		return c.SaveUploadedFile(createAccountRequest.Image, fmt.Sprintf("%s/%s%s", absPath, userDomain.GetId(), ext))
+		err = c.SaveUploadedFile(createAccountRequest.Image, fmt.Sprintf("%s/%s%s", absPath, userDomain.GetId(), ext))
+		if err != nil {
+			logger.Error("Error trying saveImg", err, zap.String("journey", "CreateAccount Controller"))
+			return rest_err.NewInternalServerError("server error")
+		}
+		return nil
 	} , cookie.SessionId, createAccountRequest.Token)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
