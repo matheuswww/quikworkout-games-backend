@@ -106,7 +106,7 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 	}
 	query = query[:len(query) - 4]
 
-	order := "ORDER BY p.user_time IS NULL,p.user_time ASC, p.created_at DESC "
+	order := "ORDER BY p.placing IS NULL, p.placing ASC, p.user_time IS NULL,p.user_time ASC, p.created_at DESC "
 	query += order+"LIMIT 10 "
 
 	rows, err := pr.mysql.QueryContext(ctx, query, args...)

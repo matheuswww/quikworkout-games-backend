@@ -70,7 +70,7 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	}
 	query = query[:len(query)-4]
 
-	order := "ORDER BY p.desqualified ASC, p.user_time IS NOT NULL, p.user_time ASC, p.created_at DESC "
+	order := "ORDER BY p.desqualified ASC, p.placing, p.placing ASC, p.user_time IS NOT NULL, p.user_time ASC, p.created_at DESC "
 	query += order+"LIMIT 10"
 
 	rows, err := ar.mysql.QueryContext(ctx, query, args...)
