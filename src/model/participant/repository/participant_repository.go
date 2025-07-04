@@ -23,6 +23,6 @@ type ParticipantRepository interface {
 	CreateParticipant(participantDomain participant_domain.ParticipantDomainInterface) *rest_err.RestErr 
 	IsValidRegistrationForEdition(participantDomain participant_domain.ParticipantDomainInterface) *rest_err.RestErr
 	GetParticipants(getParticipantRequest *participant_request.GetParticipant) (*participant_response.GetParticipant, *rest_err.RestErr)
-	HasTicket(cookieId string) ([]PaymentInfos, *rest_err.RestErr)
+	HasTicket(user_id string) ([]PaymentInfos, *rest_err.RestErr)
 	VideoSent(videoId, userId string) *rest_err.RestErr
 }

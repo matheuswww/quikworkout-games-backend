@@ -21,6 +21,6 @@ func NewParticipantService(participantRepository participant_repository.Particip
 type ParticipantService interface {
 	CreateParticipant(participantDomain participant_domain.ParticipantDomainInterface, title string, size int64) (string, *rest_err.RestErr)
 	GetParticipants(getParticipantRequest *participant_request.GetParticipant) (*participant_response.GetParticipant, *rest_err.RestErr)
-	HasTicket(cookieId string) *rest_err.RestErr
+	HasTicket(user_id string) *rest_err.RestErr
 	VideoSent(videoId, userId string) *rest_err.RestErr
 }

@@ -23,4 +23,5 @@ type AdminController interface {
 	DesqualifyVideo(c *gin.Context)
 	MakePlacing(c *gin.Context)
 	PutTime(c *gin.Context)
+	GrantTicket(c *gin.Context)
 }

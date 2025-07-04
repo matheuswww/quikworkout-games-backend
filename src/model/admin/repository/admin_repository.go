@@ -25,4 +25,5 @@ type AdminRepository interface {
 	DesqualifyVideo(videoID, editionId, desqualifed string) *rest_err.RestErr
 	MakePlacing(editionId, category string) *rest_err.RestErr
 	PutTime(videoId, editionId, userTime string) *rest_err.RestErr
+	GrantTicket(user string) *rest_err.RestErr
 }

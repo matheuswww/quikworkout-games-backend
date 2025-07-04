@@ -30,6 +30,7 @@ func InitAdminRoutes(r *gin.RouterGroup, database *sql.DB) {
 	r.POST("/manager-quikworkout/desqualifyVideo", adminController.DesqualifyVideo)
 	r.POST("/manager-quikworkout/makePlacing", adminController.MakePlacing)
 	r.POST("/manager-quikworkout/putTime", adminController.PutTime)
+	r.POST("/manager-quikworkout/grantTicket", adminController.GrantTicket)
 }
 
 func initAdminRoutes(database *sql.DB) admin_controller.AdminController {

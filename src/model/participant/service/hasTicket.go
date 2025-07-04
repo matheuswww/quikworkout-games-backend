@@ -7,10 +7,13 @@ import (
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/rest_err"
 )
 
-func (es *participantService) HasTicket(cookieId string) *rest_err.RestErr {
-	paymentInfos, restErr := es.participantRepository.HasTicket(cookieId)
+func (es *participantService) HasTicket(user_id string) *rest_err.RestErr {
+	paymentInfos, restErr := es.participantRepository.HasTicket(user_id)
 	if restErr != nil {
 		return restErr
+	}
+	if paymentInfos == nil {
+		return nil
 	}
 	var msg string
 	var found bool
