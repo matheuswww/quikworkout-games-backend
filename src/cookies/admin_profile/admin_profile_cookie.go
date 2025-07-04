@@ -5,6 +5,8 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
+	"go.uber.org/zap"
 )
 
 var (
@@ -35,17 +37,25 @@ func SendAdminProfileCookie(c *gin.Context, id, name, email string) error {
 	return nil
 }
 
-func GetAdminProfileValues(c *gin.Context) (adminProfile, error) {
+func GetAdminProfileValues(c *gin.Context) (cookie adminProfile, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Error("Error trying get cookie", r.(error), zap.String("journey", "GetAdminProfileValues"))
+			err = errors.New("invalid adminProfile cookie")
+		}
+	}()
 	session := sessions.DefaultMany(c, SessionAdminProfile)
 	id := session.Get("id")
 	email := session.Get("email")
 	name := session.Get("name")
 	if id != nil && email != nil && name != nil {
-		return adminProfile{
+		cookie = adminProfile{
 			Id:    id.(string),
 			Email: email.(string),
 			Name:  name.(string),
-		}, nil
+		}
+	} else {
+		err = errors.New("invalid adminProfile cookie")
 	}
-	return adminProfile{}, errors.New("invalid cookie admin profile")
+	return
 }

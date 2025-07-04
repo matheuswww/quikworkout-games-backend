@@ -7,7 +7,9 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
 	user_cookie "github.com/matheuswww/quikworkout-games-backend/src/cookies/user"
+	"go.uber.org/zap"
 )
 
 var (
@@ -38,19 +40,27 @@ func SendUserGamesCookie(c *gin.Context, id, sessionId string, games bool) error
 	return nil
 }
 
-func GetUserGamesCookieValues(c *gin.Context) (UserGamesCookie, error) {
+func GetUserGamesCookieValues(c *gin.Context) (cookie UserGamesCookie, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Error("Error trying get cookie", r.(error), zap.String("journey", "GetUserGamesCookieValues"))
+			err = errors.New("invalid UserGamesCookie")
+		}
+	}()
 	session := sessions.DefaultMany(c, SessionUserGames)
 	id := session.Get("id")
 	sessionId := session.Get("sessionId")
 	games := session.Get("games")
 	if id != nil && sessionId != nil && games != nil {
-		return UserGamesCookie{
+		cookie = UserGamesCookie{
 			Id:        id.(string),
 			SessionId: sessionId.(string),
 			Games: games.(bool),
-		}, nil
+		}
+	} else {
+		err = errors.New("invalid UserGamesCookie")
 	}
-	return UserGamesCookie{}, errors.New("invalid UserGamesCookie")
+	return
 }
 
 func Clear(c *gin.Context) {
