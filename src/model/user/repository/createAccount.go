@@ -20,7 +20,7 @@ func (ur *userRepository) CreateAccount(userDomain user_domain.UserDomainInterfa
 	query := "SELECT name, session_id FROM user WHERE user_id = ?"
 	err := ur.mysql.QueryRowContext(ctx, query, userDomain.GetId()).Scan(&name, &session_id)
 	if err != nil {
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "CreateAccount Repository"))
+		logger.Error("Error trying get user", err, zap.String("journey", "CreateAccount Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 	if sessionIdFromCookie != session_id {
@@ -32,11 +32,11 @@ func (ur *userRepository) CreateAccount(userDomain user_domain.UserDomainInterfa
 	var count int
 	err = ur.mysql.QueryRowContext(ctx, query, userDomain.GetId()).Scan(&count)
 	if err != nil {
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "CreateAccount Repository"))
+		logger.Error("Error trying get user_games", err, zap.String("journey", "CreateAccount Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 	if count != 0 {
-		logger.Error("Error account created", errors.New("account already created"), zap.String("journey", "CreateAccount Repository"))
+		logger.Error("Error account already created", errors.New("account already created"), zap.String("journey", "CreateAccount Repository"))
 		return rest_err.NewBadRequestError("conta já criada")
 	}
 	userDomain.SetName(name)

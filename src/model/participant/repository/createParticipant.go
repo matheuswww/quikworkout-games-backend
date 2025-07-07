@@ -19,7 +19,7 @@ func (cr *participantRepository) CreateParticipant(participantDomain participant
 	query := "SELECT category FROM user_games WHERE user_id = ?"
 	err := cr.mysql.QueryRowContext(ctx, query, participantDomain.GetUserID()).Scan(&category)
 	if err != nil {
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "CreateParticiapnt Repository"))
+		logger.Error("Error trying get user_games", err, zap.String("journey", "CreateParticiapnt Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 	participantDomain.SetCategory(category)
@@ -27,7 +27,7 @@ func (cr *participantRepository) CreateParticipant(participantDomain participant
 	query = "INSERT INTO participant (video_id, user_id, edition_id, category, sent, checked) VALUES (?, ?, ?, ?, ?, ?)"
 	_,err = cr.mysql.ExecContext(ctx, query, participantDomain.GetVideoID(), participantDomain.GetUserID(), participantDomain.GetEditionID(), participantDomain.GetCategory(), participantDomain.GetSent(), participantDomain.GetChecked())
 	if err != nil {
-		logger.Error("Error trying ExecContext", err, zap.String("journey", "CreateParticiapnt Repository"))
+		logger.Error("Error trying get participant", err, zap.String("journey", "CreateParticiapnt Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 

@@ -26,7 +26,7 @@ func (ar *adminRepository) DesqualifyVideo(videoID, editionId, desqualifed strin
 	var count int
 	err := ar.mysql.QueryRowContext(ctx, query, videoID).Scan(&count)
 	if err != nil {
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "DesqualifyVideo Repository"))
+		logger.Error("Error trying get count", err, zap.String("journey", "DesqualifyVideo Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 	if count == 0 {
@@ -38,10 +38,10 @@ func (ar *adminRepository) DesqualifyVideo(videoID, editionId, desqualifed strin
 	if desqualifed == "" {
 		desqualifedParam = nil		
 	}
-	query = "UPDATE participant SET desqualified = ? WHERE video_id = ?"
+	query = "UPDATE participant SET desqualified = ?, placing = NULL, user_time = NULL WHERE video_id = ?"
 	_, err = ar.mysql.ExecContext(ctx, query, desqualifedParam, videoID)
 	if err != nil {
-		logger.Error("Error trying ExecContext", err, zap.String("journey", "DesqualifyVideo Repository"))
+		logger.Error("Error trying update participant", err, zap.String("journey", "DesqualifyVideo Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 

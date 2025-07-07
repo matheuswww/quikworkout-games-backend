@@ -1,6 +1,7 @@
 package participant_controller
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -41,5 +42,7 @@ func (pc *participantController) VideoSent(c *gin.Context) {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
+
+	logger.Info(fmt.Sprintf("Video sent updated with successs, video_id: %s", videoSentRequest.VideoId), zap.String("journey", "VideoSent Controller"))
 	c.Status(http.StatusOK)
 }

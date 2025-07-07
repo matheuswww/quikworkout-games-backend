@@ -2,6 +2,7 @@ package admin_controller
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -35,6 +36,7 @@ func (ac *adminController) PutTime(c *gin.Context) {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
-	
+
+	logger.Info(fmt.Sprintf("Time puted with success, video_id: %s", putTimeRequest.VideoId), zap.String("journey", "PutTime Controller"))
 	c.Status(http.StatusOK)
 }

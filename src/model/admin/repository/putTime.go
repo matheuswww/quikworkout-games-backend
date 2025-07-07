@@ -26,7 +26,7 @@ func (ar *adminRepository) PutTime(videoId, editionId, userTime string) *rest_er
 	var count int
 	err := ar.mysql.QueryRowContext(ctx, query, videoId).Scan(&count)
 	if err != nil {
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "PutTime Repository"))
+		logger.Error("Error trying get participant", err, zap.String("journey", "PutTime Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 	if count == 0 {
@@ -42,7 +42,7 @@ func (ar *adminRepository) PutTime(videoId, editionId, userTime string) *rest_er
 	query = "UPDATE participant SET user_time = ? WHERE video_id = ?"
 	_,err = ar.mysql.ExecContext(ctx, query, putTimeParam, videoId)
 	if err != nil {
-		logger.Error("Error trying ExecContext", err, zap.String("journey", "PutTime Repository"))
+		logger.Error("Error trying update participant", err, zap.String("journey", "PutTime Repository"))
 		return rest_err.NewInternalServerError("server Error")
 	}
 

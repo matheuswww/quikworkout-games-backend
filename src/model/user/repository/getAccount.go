@@ -19,7 +19,7 @@ func (ur *userRepository) GetAccount(userDomain user_domain.UserDomainInterface,
 	query := "SELECT name, user, category, earnings, session_id FROM user_games WHERE user_id = ?"
 	err := ur.mysql.QueryRowContext(ctx, query, userDomain.GetId()).Scan(&name, &user, &category, &earnings, &session_id)
 	if err != nil {
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetAccount Repository"))
+		logger.Error("Error trying get user_games", err, zap.String("journey", "GetAccount Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 	if sessionIdFromCookie != session_id {

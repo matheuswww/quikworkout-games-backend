@@ -2,6 +2,7 @@ package admin_controller
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -46,5 +47,6 @@ func (ac *adminController) MakePlacing(c *gin.Context) {
 		return
 	}
 
+	logger.Info(fmt.Sprintf("Placing made with success, edition_id: %s", makePlacingRequest.EditionId), zap.String("journey", "MakePlacing Controller"))
 	c.Status(http.StatusOK)
 }

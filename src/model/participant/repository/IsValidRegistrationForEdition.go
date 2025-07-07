@@ -24,10 +24,10 @@ func (pr *participantRepository) IsValidRegistrationForEdition(participantDomain
 	err := pr.mysql.QueryRowContext(ctx, query).Scan(&edition_id, &start_date, &closing_date)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logger.Error("Error trying QueryRowContext", err, zap.String("journey", "IsValidRegistrationForEdition Repository"))
+			logger.Error("Error trying get edition", err, zap.String("journey", "IsValidRegistrationForEdition Repository"))
 			return rest_err.NewBadRequestError("no edition found")
 		}
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "IsValidRegistrationForEdition Repository"))
+		logger.Error("Error trying get edition", err, zap.String("journey", "IsValidRegistrationForEdition Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 	participantDomain.SetEditionID(edition_id)
@@ -53,7 +53,7 @@ func (pr *participantRepository) IsValidRegistrationForEdition(participantDomain
 		if err == sql.ErrNoRows {
 			return nil
 		}
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "IsValidRegistrationForEdition Repository"))
+		logger.Error("Error trying get participant", err, zap.String("journey", "IsValidRegistrationForEdition Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 
@@ -69,7 +69,7 @@ func (pr *participantRepository) IsValidRegistrationForEdition(participantDomain
 	query = "DELETE FROM participant WHERE user_id = ? AND edition_id = ? AND video_id = ?"
 	_,err = pr.mysql.ExecContext(ctx, query, participantDomain.GetUserID(), participantDomain.GetEditionID(), video_id)
 	if err != nil {
-		logger.Error("Error trying ExecContext", err, zap.String("journey", "IsValidRegistrationForEdition Repository"))
+		logger.Error("Error trying delete participant", err, zap.String("journey", "IsValidRegistrationForEdition Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 	return nil

@@ -2,6 +2,7 @@ package admin_controller
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -35,5 +36,7 @@ func (ac *adminController) GrantTicket(c *gin.Context) {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
+	
+	logger.Info(fmt.Sprintf("Ticket granted with sucess, user: %s", grantTicket.User), zap.String("journey", "GrantTicket Controller"))
 	c.Status(http.StatusOK)
 }

@@ -20,7 +20,7 @@ func VideoSent(db *sql.DB, videoId, userId string) *rest_err.RestErr {
 	var count int
 	err := db.QueryRowContext(ctx, query, videoId, userId).Scan(&count)
 	if err != nil {
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "Video Sent"))
+		logger.Error("Error trying get participant", err, zap.String("journey", "Video Sent"))
 		return rest_err.NewInternalServerError("server error")
 	}
 	if count == 0 {
@@ -29,7 +29,7 @@ func VideoSent(db *sql.DB, videoId, userId string) *rest_err.RestErr {
 	query = "UPDATE participant SET sent = TRUE WHERE video_id = ? AND user_id = ?"
 	_,err = db.ExecContext(ctx, query, videoId, userId)
 	if err != nil {
-		logger.Error("Error trying ExecContext", err, zap.String("journey", "Video Sent"))
+		logger.Error("Error trying update participant", err, zap.String("journey", "Video Sent"))
 		return rest_err.NewInternalServerError("server error")
 	}
 	return nil

@@ -24,7 +24,7 @@ func (ar *adminRepository) CreateEdition(createEditionRequest *admin_request.Cre
 			logger.Error("Error clothing not found", errors.New("clothing not found"), zap.String("journey", "CreateEdition Repository"))
 			return rest_err.NewBadRequestError("roupa não encontrada")
 		}
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "CreateEdition Repository"))
+		logger.Error("Error trying get clothing_id", err, zap.String("journey", "CreateEdition Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 
@@ -38,7 +38,7 @@ func (ar *adminRepository) CreateEdition(createEditionRequest *admin_request.Cre
 	query = "INSERT INTO edition (edition_id, start_date, closing_date, rules, clothing_id) VALUES (?, ?, ?, ?, ?)"
 	_, err = tx.ExecContext(ctx, query, id, createEditionRequest.StartDate, createEditionRequest.ClosingDate, createEditionRequest.Rules, clothing_id)
 	if err != nil {
-		logger.Error("Error trying ExecContext", err, zap.String("journey", "CreateEdition Repository"))
+		logger.Error("Error trying insert edition", err, zap.String("journey", "CreateEdition Repository"))
 		err = tx.Rollback()
 		if err != nil {
 			logger.Error("Error trying rollback", err, zap.String("journey", "CreateEdition Repository"))
@@ -51,7 +51,7 @@ func (ar *adminRepository) CreateEdition(createEditionRequest *admin_request.Cre
 		query = "INSERT INTO top (edition_id, top, gain, category) VALUES (?, ?, ?, ?)"
 		_, err := tx.ExecContext(ctx, query, id, createEditionRequest.Tops[i].Top, createEditionRequest.Tops[i].Gain, createEditionRequest.Tops[i].Category)
 		if err != nil {
-			logger.Error("Error trying ExecContext", err, zap.String("journey", "CreateEdition Repository"))
+			logger.Error("Error trying insert top", err, zap.String("journey", "CreateEdition Repository"))
 			err = tx.Rollback()
 			if err != nil {
 				logger.Error("Error trying rollback", err, zap.String("journey", "CreateEdition Repository"))
@@ -65,7 +65,7 @@ func (ar *adminRepository) CreateEdition(createEditionRequest *admin_request.Cre
 		query = "INSERT INTO challenge (edition_id, challenge, category) VALUES (?, ?, ?)"
 		_, err := tx.ExecContext(ctx, query, id, createEditionRequest.Challenge[i].Challenge, createEditionRequest.Challenge[i].Category)
 		if err != nil {
-			logger.Error("Error trying ExecContext", err, zap.String("journey", "CreateEdition Repository"))
+			logger.Error("Error trying insert challenge", err, zap.String("journey", "CreateEdition Repository"))
 			err = tx.Rollback()
 			if err != nil {
 				logger.Error("Error trying rollback", err, zap.String("journey", "CreateEdition Repository"))

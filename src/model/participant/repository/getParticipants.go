@@ -40,10 +40,9 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 	err := pr.mysql.QueryRowContext(ctx, query, args...).Scan(&edition_id, &closing_date)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipant Repository"))
 			return nil,rest_err.NewNotFoundError("no edition found")
 		}
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipant Repository"))
+		logger.Error("Error trying get edition", err, zap.String("journey", "GetParticipant Repository"))
 		return nil, rest_err.NewInternalServerError("server error")
 	}
 
@@ -106,7 +105,7 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 	}
 	query = query[:len(query) - 4]
 
-	order := "ORDER BY p.placing IS NULL, p.placing ASC, p.user_time IS NULL,p.user_time ASC, p.created_at DESC "
+	order := "ORDER BY p.placing IS NULL, p.placing ASC, p.user_time IS NULL, p.user_time ASC, p.created_at DESC "
 	query += order+"LIMIT 10 "
 
 	rows, err := pr.mysql.QueryContext(ctx, query, args...)
@@ -172,7 +171,7 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 	more := false
 	err = pr.mysql.QueryRowContext(ctx, moreData, moreDataArgs...).Scan(&more)
 	if err != nil && err != sql.ErrNoRows {
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipant Repository"))
+		logger.Error("Error trying get participants", err, zap.String("journey", "GetParticipant Repository"))
 		return nil, rest_err.NewInternalServerError("server error")
 	}
 

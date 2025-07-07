@@ -71,6 +71,8 @@ func (uc *userController) Update(c *gin.Context) {
 			return
 		}
 	}
+
+	logger.Info(fmt.Sprintf("User updated!!!, user_id: %s", cookie.Id), zap.String("journey", "CreateEdition Controller"))
 	c.Status(http.StatusOK)
 }
 
@@ -83,10 +85,10 @@ func saveNewImg(c *gin.Context, updateRequest *user_request.Update, id string) *
 		}
 	}
 
-	const maxSize = 3 * 1024 * 1024
+	const maxSize = 4 * 1024 * 1024
 		if updateRequest.Image.Size > maxSize {
 			logger.Error("Error trying save image", errors.New("image size exceeds limit"), zap.String("journey", "Update Controller"))
-			return rest_err.NewBadRequestError("image size must be less than or equal to 3MB")
+			return rest_err.NewBadRequestError("image size must be less than or equal to 4MB")
 		}
 		ext := strings.ToLower(filepath.Ext(updateRequest.Image.Filename))
 		allowedExts := map[string]bool{

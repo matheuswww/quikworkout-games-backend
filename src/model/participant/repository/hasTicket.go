@@ -26,14 +26,14 @@ func (er *participantRepository) HasTicket(user_id string) ([]PaymentInfos, *res
 		if err == sql.ErrNoRows {
 			return nil, rest_err.NewBadRequestError("no edition found")
 		}
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "HasTicket Repository"))
+		logger.Error("Error trying get edition", err, zap.String("journey", "HasTicket Repository"))
 		return nil, rest_err.NewInternalServerError("server error")
 	}
 	
 	query = "SELECT ci.order_id_api, co.payment_method FROM clothing_order_info AS ci JOIN client_order AS co ON ci.order_id_api = co.order_id_api WHERE ci.user_id = ? AND ci.clothing_id = ?"
 	rows, err := er.mysql.QueryContext(ctx, query, user_id, clothingId)
 	if err != nil {
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "HasTicket Repository"))
+		logger.Error("Error trying get clothing_order_info", err, zap.String("journey", "HasTicket Repository"))
 		return nil, rest_err.NewInternalServerError("server error")
 	}
 	defer rows.Close()
@@ -56,7 +56,7 @@ func (er *participantRepository) HasTicket(user_id string) ([]PaymentInfos, *res
 		var exists bool
 		err = er.mysql.QueryRowContext(ctx, query, user_id, editionID).Scan(&exists)
 		if err != nil && err != sql.ErrNoRows {
-			logger.Error("Error trying QueryRowContext", err, zap.String("journey", "HasTicket Repository"))
+			logger.Error("Error trying get direcit_ticket", err, zap.String("journey", "HasTicket Repository"))
 			return nil, rest_err.NewInternalServerError("server error")
 		}
 		if exists {

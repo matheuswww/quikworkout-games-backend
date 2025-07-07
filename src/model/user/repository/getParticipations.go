@@ -61,7 +61,7 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 	args = append(args, getParticipationsRequest.Limit)
 	rows, err := ur.mysql.QueryContext(ctx, query, args...)
 	if err != nil {
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipantions Repository"))
+		logger.Error("Error trying get participantions", err, zap.String("journey", "GetParticipantions Repository"))
 		return nil, nil, rest_err.NewInternalServerError("server error")
 	}
 	defer rows.Close()
@@ -75,7 +75,7 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 		var placing, user_time, desqualified sql.NullString
 		err := rows.Scan(&video_id, &placing, &edition_id, &number, &user_time, &desqualified, &category, &sent, &checked, &created_at, &gain)
 		if err != nil {
-			logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipantions Repository"))
+			logger.Error("Error trying scan", err, zap.String("journey", "GetParticipantions Repository"))
 			return nil, nil, rest_err.NewInternalServerError("server error")
 		}
 		var validPlacing any = nil
@@ -122,7 +122,7 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 	more := false
 	err = ur.mysql.QueryRowContext(ctx, moreDataQuery, moreDataArgs...).Scan(&more)
 	if err != nil && err != sql.ErrNoRows {
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipantions Repository"))
+		logger.Error("Error trying get participations", err, zap.String("journey", "GetParticipantions Repository"))
 		return nil, nil, rest_err.NewInternalServerError("server error")
 	}
 

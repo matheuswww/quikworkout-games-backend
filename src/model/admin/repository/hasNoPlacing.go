@@ -30,7 +30,7 @@ func (ar *adminRepository) HasNoPlacing(edition_id string) (bool, *rest_err.Rest
 	query = "SELECT COUNT(*) FROM participant WHERE desqualified IS NULL AND placing IS NULL AND edition_id = ?"
 	err = ar.mysql.QueryRowContext(ctx, query, edition_id).Scan(&count)
 	if err != nil {
-		logger.Error("Error trying HasNoPlacing", err, zap.String("journey", "HasNoPlacing Repository"))
+		logger.Error("Error trying get participant", err, zap.String("journey", "HasNoPlacing Repository"))
 		return false, rest_err.NewInternalServerError("server error")
 	}
 	if count > 0 {

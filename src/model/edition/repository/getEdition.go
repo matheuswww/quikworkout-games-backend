@@ -42,7 +42,7 @@ func (er *editionRepository) GetEdition(number, limit int, cursor string) ([]edi
 	rows, err := er.mysql.QueryContext(ctx, query, args...)
 
 	if err != nil {
-		logger.Error("Error trying GetEdition Repository", err, zap.String("journey", "GetEdition Repository"))
+		logger.Error("Error trying get edition", err, zap.String("journey", "GetEdition Repository"))
 		return nil, rest_err.NewInternalServerError("server error")
 	}
 	defer rows.Close()
