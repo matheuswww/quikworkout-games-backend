@@ -34,10 +34,9 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	err := ar.mysql.QueryRowContext(ctx, query, args...).Scan(&edition_id, &closing_date)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipants Repository"))
 			return nil, nil, rest_err.NewNotFoundError("no edition found")
 		}
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipants Repository"))
+		logger.Error("Error trying get edition", err, zap.String("journey", "GetParticipants Repository"))
 		return nil, nil, rest_err.NewInternalServerError("server error")
 	}
 	getParticipantsRequest.EditionId = edition_id
@@ -70,12 +69,12 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	}
 	query = query[:len(query)-4]
 
-	order := "ORDER BY p.desqualified ASC, p.placing, p.placing ASC, p.user_time IS NOT NULL, p.user_time ASC, p.created_at DESC "
+	order := "ORDER BY p.placing, p.placing ASC, p.user_time IS NOT NULL, p.user_time ASC, p.created_at DESC "
 	query += order+"LIMIT 10"
 
 	rows, err := ar.mysql.QueryContext(ctx, query, args...)
 	if err != nil {
-		logger.Error("Error trying QueryContext", err, zap.String("journey", "GetParticipants Repository"))
+		logger.Error("Error trying get participants", err, zap.String("journey", "GetParticipants Repository"))
 		return nil, nil, rest_err.NewInternalServerError("server error")
 	}
 	defer rows.Close()
@@ -130,7 +129,6 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	}
 
 	if len(participants) == 0 {
-		logger.Error("Error trying get participants", errors.New("not found"), zap.String("journey", "GetParticipants Repository"))
 		return nil, nil, rest_err.NewNotFoundError("no participants were found")
 	}
 
@@ -147,7 +145,7 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	more := false
 	err = ar.mysql.QueryRowContext(ctx, moreDataQuery, moreDataArgs...).Scan(&more)
 	if err != nil && err != sql.ErrNoRows {
-		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipants Repository"))
+		logger.Error("Error trying get participants", err, zap.String("journey", "GetParticipants Repository"))
 		return nil, nil, rest_err.NewInternalServerError("server error")
 	}
 
