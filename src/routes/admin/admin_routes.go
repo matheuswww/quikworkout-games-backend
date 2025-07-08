@@ -7,6 +7,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
+	"github.com/matheuswww/quikworkout-games-backend/src/configuration/rest_err"
 	admin_controller "github.com/matheuswww/quikworkout-games-backend/src/controller/admin"
 	admin_profile_cookie "github.com/matheuswww/quikworkout-games-backend/src/cookies/admin_profile"
 	admin_repository "github.com/matheuswww/quikworkout-games-backend/src/model/admin/repository"
@@ -23,6 +24,18 @@ func InitAdminRoutes(r *gin.RouterGroup, database *sql.DB) {
 	}
 	sessionNames := []string{admin_profile_cookie.SessionAdminProfile}
 	r.Use(sessions.SessionsMany(sessionNames, cookieStore))
+
+	r.Use(func(c *gin.Context) {
+		_, err := admin_profile_cookie.GetAdminProfileValues(c)
+		if err != nil {
+			logger.Error("Error trying get cookie", err, zap.String("journey", "admin route"))
+			restErr := rest_err.NewUnauthorizedError("cookie inválido")
+			c.JSON(restErr.Code, restErr)
+			c.Abort()
+			return
+		}
+		c.Next()
+	})
 
 	r.POST("/manager-quikworkout/createEdition", adminController.CreateEdition)
 	r.GET("/manager-quikworkout/getParticipants", adminController.GetParticipants)
