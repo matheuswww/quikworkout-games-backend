@@ -23,6 +23,6 @@ COPY --from=builder /app/log/ ./log/
 RUN mkdir -p images log \
     && touch log/log.txt log/last_position.txt
 
-EXPOSE 5000
+EXPOSE 8081
 
 CMD ["./server"]
