@@ -12,7 +12,7 @@ import (
 var (
 	server = "smtp.hostinger.com"
 	from   = "quik@quikworkout.com.br"
-	port   = "465"
+	port   = "587"
 	user   = "quik@quikworkout.com.br"
 )
 
