@@ -11,9 +11,9 @@ import (
 
 var (
 	server = "smtp.hostinger.com"
-	from   = "contact@quikworkout.com.br"
-	port   = "587"
-	user   = "contact@quikworkout.com.br"
+	from   = "quik@quikworkout.com.br"
+	port   = "465"
+	user   = "quik@quikworkout.com.br"
 )
 
 func (m *hostinger) NewMailHostingerConnection(to, subject string, htmlContent []byte) error {
