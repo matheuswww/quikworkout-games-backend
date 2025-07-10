@@ -25,18 +25,6 @@ func (ar *adminRepository) GrantTicket(user string) *rest_err.RestErr {
 		return rest_err.NewInternalServerError("server error")
 	}
 
-	query = "SELECT 1 FROM direct_ticket WHERE user_id = ?"
-	var exists int
-	err = ar.mysql.QueryRowContext(ctx, query, user_id).Scan(&exists)
-	if err != nil && err != sql.ErrNoRows {
-		logger.Error("Error trying get direct tikect", err, zap.String("journey", "GrantTicket Repository"))
-		return rest_err.NewInternalServerError("server error")
-	}
-	if exists == 1 {
-		logger.Error("User already has a direct ticket", nil, zap.String("journey", "GrantTicket Repository"))
-		return rest_err.NewBadRequestError("user already has a direct ticket")
-	}
-
 	query = "SELECT edition_id FROM edition ORDER BY created_at DESC LIMIT 1"
 	var edition_id string
 	err = ar.mysql.QueryRowContext(ctx, query).Scan(&edition_id)
@@ -48,6 +36,19 @@ func (ar *adminRepository) GrantTicket(user string) *rest_err.RestErr {
 		logger.Error("Error trying get edition", err, zap.String("journey", "GrantTicket Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
+
+	query = "SELECT 1 FROM direct_ticket WHERE user_id = ? AND edition_id = ?"
+	var exists int
+	err = ar.mysql.QueryRowContext(ctx, query, user_id, edition_id).Scan(&exists)
+	if err != nil && err != sql.ErrNoRows {
+		logger.Error("Error trying get direct tikect", err, zap.String("journey", "GrantTicket Repository"))
+		return rest_err.NewInternalServerError("server error")
+	}
+	if exists == 1 {
+		logger.Error("User already has a direct ticket", nil, zap.String("journey", "GrantTicket Repository"))
+		return rest_err.NewBadRequestError("user already has a direct ticket")
+	}
+
 	query = "INSERT INTO direct_ticket (user_id, edition_id) VALUES (?, ?)"
 	_, err = ar.mysql.ExecContext(ctx, query, user_id, edition_id)
 	if err != nil {
