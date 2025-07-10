@@ -14,11 +14,11 @@ func (ar *adminRepository) CheckVideo(videoID, editionId string) *rest_err.RestE
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	val, restErr := ar.HasNoPlacing(editionId)
+	val, restErr := ar.HasPlacing(editionId)
 	if restErr != nil {
 		return restErr
 	}
-	if !val {
+	if val {
 		return rest_err.NewBadRequestError("this edition was finished")
 	}
 
