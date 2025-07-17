@@ -5,17 +5,18 @@ type CreateEdition struct {
 	ClosingDate  string      `json:"closing_date" binding:"required" validate:"closing_date"`
 	ClothingName string      `json:"clothing_name" binding:"required,max=15"`
 	Rules        string      `json:"rules" binding:"required"`
-	Challenge    []Challenge `json:"challenge" validate:"dive"`
+	Challenge    []Challenge `json:"challenge" binding:"required" validate:"dive"`
 	Tops         []Top       `json:"tops" binding:"required" validate:"dive"`
 }
 
 type Top struct {
-	Top      int    `json:"top" binding:"required"`
-	Gain     int    `json:"gain" binding:"required"`
-	Category string `json:"category" binding:"required" validate:"category"`
+	Top      int    `json:"top" validate:"required"`
+	Gain     int    `json:"gain"`
+	Category string `json:"category" validate:"required,category"`
 }
 
 type Challenge struct {
-	Challenge string `json:"challenge" binding:"required"`
-	Category  string `json:"category" binding:"required" validate:"category"`
+	Challenge string `json:"challenge" validate:"required"`
+	Category  string `json:"category" validate:"required,category"`
+	Sex       string `json:"sex" validate:"required,sex"`
 }

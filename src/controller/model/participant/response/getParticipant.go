@@ -12,6 +12,7 @@ type Participant struct {
 	VideoId      string `json:"video_id"`
 	Edition_id   string `json:"edition_id"`
 	Category     string `json:"category"`
+	Sex          string `json:"sex"`
 	Challenge    string `json:"challenge"`
 	Title        any    `json:"title"`
 	ThumbnailUrl any    `json:"thumbnail_url"`

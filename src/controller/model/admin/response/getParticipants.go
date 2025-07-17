@@ -12,6 +12,7 @@ type Participant struct {
 	ThumbnailUrl any    `json:"thumbnail_url"`
 	VideoId      string `json:"video_id"`
 	Category     string `json:"category"`
+	Sex          string `json:"sex"`
 	Sent         bool   `json:"sent"`
 	Edition      int    `json:"edition"`
 	EditionId    string `json:"edition_id"`

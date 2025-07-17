@@ -10,6 +10,7 @@ type participant struct {
 	checked   bool
 	sent      bool
 	category  string
+	sex 			string
 	createdAt string
 }
 
@@ -67,6 +68,14 @@ func (p *participant) GetCategory() string {
 
 func (p *participant) SetCategory(c string) {
 	p.category = c
+}
+
+func (p *participant) GetSex() string {
+	return p.sex
+}
+
+func (p *participant) SetSex(s string) {
+	p.sex = s
 }
 
 func (p *participant) GetCreatedAt() string {

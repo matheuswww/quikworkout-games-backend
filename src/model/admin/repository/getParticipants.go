@@ -3,7 +3,6 @@ package admin_repository
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"time"
 
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
@@ -16,10 +15,6 @@ import (
 func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request.GetParticipants) (*admin_response.GetParticipants, *sql.DB, *rest_err.RestErr) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
-	if getParticipantsRequest.Category == "" && getParticipantsRequest.VideoId == "" {
-		logger.Error("Error trying get participants", errors.New("category or video_id must be provided"), zap.String("journey", "GetParticipant Repository"))
-		return nil, nil, rest_err.NewBadRequestError("category or video_id must be provided")
-	}
 	var closing_date string
 	var edition_id string
 	var query string
@@ -44,14 +39,19 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 
 	args = append(args, getParticipantsRequest.EditionId)
 	moreDataArgs := []any{getParticipantsRequest.EditionId}
-	from := "FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id JOIN user AS uq ON uq.user_id = u.user_id JOIN edition AS e ON p.edition_id = e.edition_id LEFT JOIN top AS t ON t.top = p.placing AND t.edition_id = p.edition_id AND t.category = p.category JOIN challenge AS c ON c.edition_id = p.edition_id AND c.category = p.category WHERE p.edition_id = ? AND "
+	from := "FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id JOIN user AS uq ON uq.user_id = u.user_id JOIN edition AS e ON p.edition_id = e.edition_id LEFT JOIN top AS t ON t.top = p.placing AND t.edition_id = p.edition_id AND t.category = p.category JOIN challenge AS c ON c.edition_id = p.edition_id AND c.category = p.category AND c.sex = p.sex WHERE p.edition_id = ? AND "
 	moreDataQuery := "SELECT 1 " + from
-	query = "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.desqualified, p.category, c.challenge, p.sent, p.checked, u.user_id, u.name, u.user, t.gain, uq.email, p.created_at " + from
+	query = "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.desqualified, p.category, p.sex, c.challenge, p.sent, p.checked, u.user_id, u.name, u.user, t.gain, uq.email, p.created_at " + from
 	if getParticipantsRequest.Category != "" {
 		query += "p.category = ? AND "
 		moreDataQuery += "p.category = ? AND "
 		args = append(args, getParticipantsRequest.Category)
 		moreDataArgs = append(moreDataArgs, getParticipantsRequest.Category)
+
+		moreDataQuery += "p.sex = ? AND "
+		query += "p.sex = ? AND "
+		moreDataArgs = append(moreDataArgs, getParticipantsRequest.Sex)
+		args = append(args, getParticipantsRequest.Sex)
 	}
 	if getParticipantsRequest.VideoId != "" {
 		query += "p.video_id = ? AND "
@@ -70,7 +70,7 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	query = query[:len(query)-4]
 
 	order := "ORDER BY p.placing, p.placing ASC, p.user_time IS NOT NULL, p.user_time ASC, p.created_at DESC "
-	query += order+"LIMIT 10"
+	query += order + "LIMIT 10"
 
 	rows, err := ar.mysql.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -80,12 +80,12 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	defer rows.Close()
 	var participants []admin_response.Participant
 	for rows.Next() {
-		var video_id, user_id, edition_id, name, category, challenge, user, email, created_at string
+		var video_id, user_id, edition_id, name, category, sex, challenge, user, email, created_at string
 		var userTime, placing, desqualified sql.NullString
 		var gain sql.NullInt64
 		var checked, sent bool
 		var number int
-		err = rows.Scan(&video_id, &placing, &edition_id, &number, &userTime, &desqualified, &category, &challenge, &sent, &checked, &user_id, &name, &user, &gain, &email, &created_at)
+		err = rows.Scan(&video_id, &placing, &edition_id, &number, &userTime, &desqualified, &category, &sex, &challenge, &sent, &checked, &user_id, &name, &user, &gain, &email, &created_at)
 		if err != nil {
 			logger.Error("Error trying Scan", err, zap.String("journey", "GetParticipants Repository"))
 			return nil, nil, rest_err.NewInternalServerError("server error")
@@ -113,6 +113,7 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 			Sent:         sent,
 			Placing:      placingValid,
 			Category:     category,
+			Sex:          sex,
 			Challenge:    challenge,
 			Gain:         gainValid,
 			UserTime:     userTimeValid,

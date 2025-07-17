@@ -7,6 +7,7 @@ type Top struct {
 }
 
 type Challenge struct {
+	Sex				string `json:"sex"`
 	Challenge string `json:"challenge"`
 	Category  string `json:"category"`
 }

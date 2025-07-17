@@ -40,6 +40,7 @@ func (ec *editionController) GetEdition(c *gin.Context) {
 		var challenges []edition_response.Challenge
 		for _,challenge := range edition.GetChallenge() {
 			challenges = append(challenges, edition_response.Challenge{
+				Sex: challenge.Sex,
 				Challenge: challenge.Challenge,
 				Category: challenge.Category,
 			})

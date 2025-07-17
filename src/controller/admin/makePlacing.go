@@ -32,7 +32,7 @@ func (ac *adminController) MakePlacing(c *gin.Context) {
 	}
 
 
-	restErr := ac.adminService.MakePlacing(makePlacingRequest.EditionId, makePlacingRequest.Category)
+	restErr := ac.adminService.MakePlacing(makePlacingRequest.EditionId, makePlacingRequest.Category, makePlacingRequest.Sex)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return

@@ -20,14 +20,14 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 	var name, user string
 	query := "SELECT name, user FROM user_games WHERE user_id = ?"
 	err := ur.mysql.QueryRowContext(ctx, query, user_domain.GetId()).Scan(&name, &user)
-	if err != nil { 
+	if err != nil {
 		logger.Error("Error trying QueryRowContext", err, zap.String("journey", "GetParticipantions Repository"))
 		return nil, nil, rest_err.NewInternalServerError("server error")
 	}
 
 	from := "FROM participant AS p JOIN edition AS e ON p.edition_id = e.edition_id LEFT JOIN top AS t ON p.placing = t.top AND t.edition_id = p.edition_id AND t.category = p.category AND p.placing IS NOT NULL WHERE p.user_id = ? AND "
 	moreDataQuery := "SELECT 1 " + from
-	query = "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.desqualified, p.category, p.sent, p.checked, p.created_at, t.gain " + from
+	query = "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.desqualified, p.category, p.sex, p.sent, p.checked, p.created_at, t.gain " + from
 	var args []any
 	var moreDataArgs []any
 	args = append(args, user_domain.GetId())
@@ -51,7 +51,7 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 		moreDataArgs = append(moreDataArgs, getParticipationsRequest.Cursor)
 	}
 	if len(args) > 0 {
-		query = query[:len(query) - 4]
+		query = query[:len(query)-4]
 	}
 	order := "ORDER BY p.created_at DESC "
 	query += order + "LIMIT ?"
@@ -68,12 +68,12 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 
 	var participants []user_response.Participantion
 	for rows.Next() {
-		var video_id, edition_id, category, created_at string
+		var video_id, edition_id, category, sex, created_at string
 		var number int
 		var gain sql.NullInt64
 		var checked, sent bool
 		var placing, user_time, desqualified sql.NullString
-		err := rows.Scan(&video_id, &placing, &edition_id, &number, &user_time, &desqualified, &category, &sent, &checked, &created_at, &gain)
+		err := rows.Scan(&video_id, &placing, &edition_id, &number, &user_time, &desqualified, &category, &sex, &sent, &checked, &created_at, &gain)
 		if err != nil {
 			logger.Error("Error trying scan", err, zap.String("journey", "GetParticipantions Repository"))
 			return nil, nil, rest_err.NewInternalServerError("server error")
@@ -95,17 +95,18 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 			validUserTime = user_time.String
 		}
 		participants = append(participants, user_response.Participantion{
-			VideoId: video_id,
-			Placing: validPlacing,
-			Edition: number,
-			EditionId: edition_id,
-			Sent: sent,
-			Gain: validGain,
-			UserTime: validUserTime,
-			Category: category,
+			VideoId:      video_id,
+			Placing:      validPlacing,
+			Edition:      number,
+			EditionId:    edition_id,
+			Sent:         sent,
+			Gain:         validGain,
+			UserTime:     validUserTime,
+			Category:     category,
+			Sex:          sex,
 			Desqualified: validDesqualified,
-			Checked: checked,
-			CreatedAt: created_at,
+			Checked:      checked,
+			CreatedAt:    created_at,
 		})
 	}
 
@@ -130,8 +131,8 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 		Participations: participants,
 		User: user_response.User{
 			UserId: user_domain.GetId(),
-			Name: name,
-			User: user,
+			Name:   name,
+			User:   user,
 		},
 		More: more,
 	}, ur.mysql, nil

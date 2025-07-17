@@ -7,6 +7,7 @@ type GetParticipant struct {
 	CursorCreatedAt string `form:"cursorCreatedAt"`
 	CursorUserTime  string `form:"cursorUserTime"`
 	Category        string `form:"category" validate:"category"`
+	Sex             string `form:"sex" validate:"sex"`
 	BestTime        bool   `form:"bestTime"`
 	Width           int    `form:"width"`
 	Autoplay        bool   `form:"autoplay"`

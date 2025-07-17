@@ -22,10 +22,6 @@ var monthNames = []string{
 func (pr *participantRepository) GetParticipants(getParticipantRequest *participant_request.GetParticipant) (*participant_response.GetParticipant, *rest_err.RestErr) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
-	if getParticipantRequest.Category == "" && getParticipantRequest.VideoId == "" {
-		logger.Error("Error trying get participants", errors.New("category or video_id must be provided"), zap.String("journey", "GetParticipant Repository"))
-		return nil, rest_err.NewBadRequestError("category or video_id must be provided")
-	}
 	var closing_date string
 	var query string
 	var args []any
@@ -74,14 +70,19 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 
 	args = append(args, getParticipantRequest.EditionId)
 	moreDataArgs := []any{ getParticipantRequest.EditionId }
-	from := "FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id JOIN challenge AS c ON p.edition_id = c.edition_id AND c.category = p.category WHERE p.edition_id = ? AND p.checked IS true AND p.sent IS true AND desqualified IS NULL AND "
+	from := "FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id JOIN challenge AS c ON p.edition_id = c.edition_id AND c.category = p.category AND c.sex = p.sex WHERE p.edition_id = ? AND p.checked IS true AND p.sent IS true AND desqualified IS NULL AND "
 	moreData := "SELECT 1 " + from
-	query = "SELECT p.video_id, u.user_id, u.name, p.category, u.user, p.edition_id, p.user_time, p.placing, c.challenge, p.created_at " + from
+	query = "SELECT p.video_id, u.user_id, u.name, p.category, p.sex, u.user, p.edition_id, p.user_time, p.placing, c.challenge, p.created_at " + from
 	if getParticipantRequest.Category != "" {
 		moreData += "p.category = ? AND "
 		query += "p.category = ? AND "
 		moreDataArgs = append(moreDataArgs, getParticipantRequest.Category)
 		args = append(args, getParticipantRequest.Category)
+
+		moreData += "p.sex = ? AND "
+		query += "p.sex = ? AND "
+		moreDataArgs = append(moreDataArgs, getParticipantRequest.Sex)
+		args = append(args, getParticipantRequest.Sex)
 	}
 	if getParticipantRequest.NotVideoId != "" {
 		moreData += "p.video_id != ? AND "
@@ -116,9 +117,9 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 	defer rows.Close()
 	var participants []participant_response.Participant
 	for rows.Next() {
-		var video_id, user_id, name, category, user, edition_id, challenge, created_at string
+		var video_id, user_id, name, category, sex, user, edition_id, challenge, created_at string
 		var userTime, placing sql.NullString
-		err = rows.Scan(&video_id, &user_id, &name, &category, &user, &edition_id, &userTime, &placing, &challenge, &created_at)
+		err = rows.Scan(&video_id, &user_id, &name, &category, &sex, &user, &edition_id, &userTime, &placing, &challenge, &created_at)
 		if err != nil {
 			logger.Error("Error trying Scan", err, zap.String("journey", "GetParticipant Repository"))
 			return nil, rest_err.NewInternalServerError("server error")
@@ -137,6 +138,7 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 			Edition_id: edition_id,
 			Placing: userPlacingValid,
 			Category: category,
+			Sex: 			sex,
 			Challenge: challenge,
 			User: participant_response.User{
 				UserId: user_id,

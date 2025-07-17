@@ -21,9 +21,9 @@ type adminRepository struct {
 type AdminRepository interface {
 	CreateEdition(createEditionRequest *admin_request.CreateEdition) *rest_err.RestErr
 	GetParticipants(getParticipantsRequest *admin_request.GetParticipants) (*admin_response.GetParticipants, *sql.DB, *rest_err.RestErr)
-	CheckVideo(videoID, editionId string) *rest_err.RestErr
-	DesqualifyVideo(videoID, editionId, desqualifed string) *rest_err.RestErr
-	MakePlacing(editionId, category string) *rest_err.RestErr
-	PutTime(videoId, editionId, userTime string) *rest_err.RestErr
+	CheckVideo(videoID, editionId, category, sex string) *rest_err.RestErr
+	DesqualifyVideo(videoID, editionId, category, sex, desqualifed string) *rest_err.RestErr
+	MakePlacing(editionId, category, sex string) *rest_err.RestErr
+	PutTime(videoId, editionId, category, sex, userTime string) *rest_err.RestErr
 	GrantTicket(user string) *rest_err.RestErr
 }

@@ -7,6 +7,7 @@ type Top struct {
 }
 
 type Challenge struct {
+	Sex       string
 	Challenge string
 	Category  string
 }

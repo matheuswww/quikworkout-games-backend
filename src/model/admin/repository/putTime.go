@@ -11,11 +11,11 @@ import (
 	"go.uber.org/zap"
 )
 
-func (ar *adminRepository) PutTime(videoId, editionId, userTime string) *rest_err.RestErr {
+func (ar *adminRepository) PutTime(videoId, editionId, category, sex, userTime string) *rest_err.RestErr {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	val, restErr := ar.HasPlacing(editionId)
+	val, restErr := ar.HasPlacing(editionId, category, sex)
 	if restErr != nil {
 		return restErr
 	}

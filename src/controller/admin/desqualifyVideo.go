@@ -21,7 +21,7 @@ func (ac *adminController) DesqualifyVideo(c *gin.Context) {
 		return
 	}
 
-	restErr := ac.adminService.DesqualifyVideo(desqualifyVideoRequest.VideoID, desqualifyVideoRequest.EditionId, desqualifyVideoRequest.Desqualified)
+	restErr := ac.adminService.DesqualifyVideo(desqualifyVideoRequest.VideoID, desqualifyVideoRequest.EditionId, desqualifyVideoRequest.Category, desqualifyVideoRequest.Sex, desqualifyVideoRequest.Desqualified)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return

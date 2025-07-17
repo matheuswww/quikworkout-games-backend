@@ -2,6 +2,7 @@ package admin_controller
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,8 +21,8 @@ func (ac *adminController) CheckVideo(c *gin.Context) {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
-
-	restErr := ac.adminService.CheckVideo(checkVideoRequest.VideoID, checkVideoRequest.EditionId)
+	fmt.Println(checkVideoRequest)
+	restErr := ac.adminService.CheckVideo(checkVideoRequest.VideoID, checkVideoRequest.EditionId, checkVideoRequest.Category, checkVideoRequest.Sex)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return

@@ -62,8 +62,8 @@ func (ar *adminRepository) CreateEdition(createEditionRequest *admin_request.Cre
 	}
 
 	for i := 0; i < len(createEditionRequest.Challenge); i++ {
-		query = "INSERT INTO challenge (edition_id, challenge, category) VALUES (?, ?, ?)"
-		_, err := tx.ExecContext(ctx, query, id, createEditionRequest.Challenge[i].Challenge, createEditionRequest.Challenge[i].Category)
+		query = "INSERT INTO challenge (edition_id, challenge, category, sex) VALUES (?, ?, ?, ?)"
+		_, err := tx.ExecContext(ctx, query, id, createEditionRequest.Challenge[i].Challenge, createEditionRequest.Challenge[i].Category, createEditionRequest.Challenge[i].Sex)
 		if err != nil {
 			logger.Error("Error trying insert challenge", err, zap.String("journey", "CreateEdition Repository"))
 			err = tx.Rollback()

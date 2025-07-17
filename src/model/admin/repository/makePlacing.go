@@ -16,7 +16,7 @@ type top struct {
 	gain int	
 }
 
-func (ar *adminRepository) MakePlacing(editionId, category string) *rest_err.RestErr {
+func (ar *adminRepository) MakePlacing(editionId, category, sex string) *rest_err.RestErr {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -45,8 +45,8 @@ func (ar *adminRepository) MakePlacing(editionId, category string) *rest_err.Res
 	}
 
 	var count int
-	query = "SELECT COUNT(*) FROM participant WHERE edition_id = ? AND category = ? AND desqualified IS NULL AND (user_time IS NULL OR checked IS FALSE)"
-	err = ar.mysql.QueryRowContext(ctx, query, editionId, category).Scan(&count)
+	query = "SELECT COUNT(*) FROM participant WHERE edition_id = ? AND category = ? AND sex = ? AND desqualified IS NULL AND (user_time IS NULL OR checked IS FALSE)"
+	err = ar.mysql.QueryRowContext(ctx, query, editionId, category, sex).Scan(&count)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return rest_err.NewNotFoundError("no participants found")
@@ -81,8 +81,8 @@ func (ar *adminRepository) MakePlacing(editionId, category string) *rest_err.Res
 		})
 	}
 	
-	query = "SELECT user_id FROM participant WHERE edition_id = ? AND category = ? AND desqualified IS NULL ORDER BY user_time ASC"
-	rows, err = ar.mysql.QueryContext(ctx, query, editionId, category)
+	query = "SELECT user_id FROM participant WHERE edition_id = ? AND category = ? AND sex = ? AND desqualified IS NULL ORDER BY user_time ASC"
+	rows, err = ar.mysql.QueryContext(ctx, query, editionId, category, sex)
 	if err != nil {
 		logger.Error("Error trying get participants", err, zap.String("journey", "MakePlacing Repository"))
 		return rest_err.NewInternalServerError("server error")
@@ -107,8 +107,8 @@ func (ar *adminRepository) MakePlacing(editionId, category string) *rest_err.Res
 	}
 
 	query = "UPDATE participant SET placing = CASE user_id "
-	endQuery := "END WHERE edition_id = ? AND category = ? AND user_id IN ("
-	endQueryArgs := []any{editionId, category}
+	endQuery := "END WHERE edition_id = ? AND category = ? AND sex = ? AND user_id IN ("
+	endQueryArgs := []any{editionId, category, sex}
 	args := []any{}
 
 	for i, userId := range userIds {

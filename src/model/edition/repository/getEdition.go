@@ -17,7 +17,7 @@ func (er *editionRepository) GetEdition(number, limit int, cursor string) ([]edi
 	defer cancel()
 	var args []any
 
-	query := "SELECT e.edition_id, e.start_date, e.closing_date, e.rules, e.number, t.top, t.gain, t.category, c.challenge, c.category, e.created_at FROM (SELECT edition_id, start_date, closing_date, rules, number, created_at FROM edition "
+	query := "SELECT e.edition_id, e.start_date, e.closing_date, e.rules, e.number, t.top, t.gain, t.category, c.challenge, c.category, c.sex, e.created_at FROM (SELECT edition_id, start_date, closing_date, rules, number, created_at FROM edition "
 	if number != 0 || cursor != "" {
 		query += "WHERE "
 	}
@@ -54,13 +54,13 @@ func (er *editionRepository) GetEdition(number, limit int, cursor string) ([]edi
 	var challenges []edition_domain.Challenge
 	challengeMap := make(map[string]bool)
 	topMap := make(map[string]bool)
-
+	
 	for rows.Next() {
-		var id, start_date, closing_date, rules, challenge, challengeCategory, created_at string
+		var id, start_date, closing_date, rules, challenge, challengeCategory, sex, created_at string
 		var number int
 		var topCategory sql.NullString
 		var gain, top sql.NullInt64
-		err := rows.Scan(&id, &start_date, &closing_date, &rules, &number, &top, &gain, &topCategory, &challenge, &challengeCategory, &created_at)
+		err := rows.Scan(&id, &start_date, &closing_date, &rules, &number, &top, &gain, &topCategory, &challenge, &challengeCategory, &sex, &created_at)
 		if err != nil {
 			logger.Error("Error trying scan row", err, zap.String("journey", "GetEdition Repository"))
 			return nil, rest_err.NewInternalServerError("server error")
@@ -74,12 +74,13 @@ func (er *editionRepository) GetEdition(number, limit int, cursor string) ([]edi
 			editionDomain = edition_domain.NewEditionDomain(id, start_date, closing_date, rules, nil, nil, number, created_at)
 			tops = nil
 		}
-		if _, exists := challengeMap[challengeCategory+challenge]; !exists {
+		if _, exists := challengeMap[challengeCategory+challenge+sex]; !exists {
 			challenges = append(challenges, edition_domain.Challenge{
+				Sex: sex,
 				Challenge: challenge,
 				Category:  challengeCategory,
 			})
-			challengeMap[challengeCategory+challenge] = true
+			challengeMap[challengeCategory+challenge+sex] = true
 		}
 		if top.Valid && topCategory.Valid && gain.Valid {
 			topKey := fmt.Sprintf("%s%d", topCategory.String, top.Int64)

@@ -1,17 +1,20 @@
 package participant_controller
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/rest_err"
+	custom_validator "github.com/matheuswww/quikworkout-games-backend/src/configuration/validation/customValidator"
 	default_validator "github.com/matheuswww/quikworkout-games-backend/src/configuration/validation/defaultValidator"
+	get_custom_validator "github.com/matheuswww/quikworkout-games-backend/src/controller/model"
 	participant_request "github.com/matheuswww/quikworkout-games-backend/src/controller/model/participant/request"
 	participant_response "github.com/matheuswww/quikworkout-games-backend/src/controller/model/participant/response"
 	user_games_cookie "github.com/matheuswww/quikworkout-games-backend/src/cookies/user/user_games"
-	model_util "github.com/matheuswww/quikworkout-games-backend/src/model/util"
 	participant_domain "github.com/matheuswww/quikworkout-games-backend/src/model/participant"
+	model_util "github.com/matheuswww/quikworkout-games-backend/src/model/util"
 	"go.uber.org/zap"
 )
 
@@ -38,8 +41,15 @@ func (pc *participantController) CreateParticipant(c *gin.Context) {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
+	translator, customErr := get_custom_validator.CustomValidator(createParticipantRequest)
+	if customErr != nil {
+		restErr := custom_validator.HandleCustomValidatorErrors(translator, customErr)
+		logger.Error("Error trying convert fields", errors.New("invalid fields"), zap.String("journey", "CreateEdition Controller"))
+		c.JSON(restErr.Code, restErr)
+		return
+	}
 
-	participant := participant_domain.NewParticipantDomain("", cookie.Id, "", nil, "", "", false, false)
+	participant := participant_domain.NewParticipantDomain("", cookie.Id, "", nil, "", "", createParticipantRequest.Sex, false, false)
 
 	form, restErr := pc.participantService.CreateParticipant(participant, createParticipantRequest.Title, createParticipantRequest.Size)
 	if restErr != nil {

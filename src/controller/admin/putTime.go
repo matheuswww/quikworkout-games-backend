@@ -22,7 +22,7 @@ func (ac *adminController) PutTime(c *gin.Context) {
 		return
 	}
 
-	restErr := ac.adminService.PutTime(putTimeRequest.VideoId, putTimeRequest.EditionId, putTimeRequest.Time)
+	restErr := ac.adminService.PutTime(putTimeRequest.VideoId, putTimeRequest.EditionId, putTimeRequest.Category, putTimeRequest.Sex, putTimeRequest.Time)
 	if restErr != nil {
 		c.JSON(restErr.Code, restErr)
 		return

@@ -17,6 +17,8 @@ type ParticipantDomainInterface interface {
 	GetSent() bool
 	GetCategory() string
 	SetCategory(string)
+	GetSex() string
+	SetSex(string)
 	GetCreatedAt() string
 	SetCreatedAt(string)
 }
@@ -25,7 +27,8 @@ func NewParticipantDomain(
 	videoID, userID, editionID string,
 	userTime *time.Time,
 	createdAt,
-	category string,
+	category,
+	sex string,
 	checked bool,
 	sent bool,
 ) ParticipantDomainInterface {
@@ -37,6 +40,7 @@ func NewParticipantDomain(
 		checked:        checked,
 		sent: 					sent,
 		category:				category,
+		sex: 						sex,	
 		createdAt:      createdAt,
 	}
 }
