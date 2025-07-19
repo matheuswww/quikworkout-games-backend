@@ -42,12 +42,12 @@ func CheckImage(fileHeader *multipart.FileHeader, fileName string) *rest_err.Res
 	workflow := os.Getenv("SIGHTENGINE_WORKFLOW")
 	if secret == "" || workflow == "" {
 		logger.Error("Error trying get env", errors.New("env not found"), zap.String("journey", "CheckImage"))
-		return rest_err.NewInternalServerError("server error")
+		return nil
 	}
 	file, err := fileHeader.Open()
 	if err != nil {
 		logger.Error("Error trying open file", err, zap.String("journey", "CheckImage"))
-		return rest_err.NewInternalServerError("server error")
+		return nil
 	}
 	defer file.Close()
 	var requestBody bytes.Buffer
@@ -55,57 +55,57 @@ func CheckImage(fileHeader *multipart.FileHeader, fileName string) *rest_err.Res
 	part, err := writer.CreateFormFile("media", fileName)
 	if err != nil {
 		logger.Error("Error trying write field", err, zap.String("journey", "CheckImage"))
-		return rest_err.NewInternalServerError("server error")
+		return nil
 	}
 	_, err = io.Copy(part, file)
 	if err != nil {
 		logger.Error("Error trying copy file", err, zap.String("journey", "CheckImage"))
-		return rest_err.NewInternalServerError("server error")
+		return nil
 	}
 	err = writer.WriteField("workflow", workflow)
 	if err != nil {
 		logger.Error("Error trying write field", err, zap.String("journey", "CheckImage"))
-		return rest_err.NewInternalServerError("server error")
+		return nil
 	}
 	err = writer.WriteField("api_user", user)
 	if err != nil {
 		logger.Error("Error trying write field", err, zap.String("journey", "CheckImage"))
-		return rest_err.NewInternalServerError("server error")
+		return nil
 	}
 	err = writer.WriteField("api_secret", secret)
 	if err != nil {
 		logger.Error("Error trying write field", err, zap.String("journey", "CheckImage"))
-		return rest_err.NewInternalServerError("server error")
+		return nil
 	}
 	err = writer.Close()
 	if err != nil {
 		logger.Error("Error trying close writer", err, zap.String("journey", "CheckImage"))
-		return rest_err.NewInternalServerError("server error")
+		return nil
 	}
 
 	req, err := http.NewRequest("POST", "https://api.sightengine.com/1.0/check-workflow.json", &requestBody)
 	if err != nil {
 		logger.Error("Error trying make request", err, zap.String("journey", "CheckImage"))
-		return rest_err.NewInternalServerError("server error")
+		return nil
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		logger.Error("Error trying do request", err, zap.String("journey", "CheckImage"))
-		return rest_err.NewInternalServerError("server error")
+		return nil
 	}
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.Error("Error trying read response body", err, zap.String("journey", "CheckImage"))
-		return rest_err.NewInternalServerError("server error")
+		return nil
 	}
 
 	var respJson Response
 	if err := json.Unmarshal(respBody, &respJson); err != nil {
 		logger.Error("Error trying unmarshal response", err, zap.String("journey", "CheckImage"))
-		return rest_err.NewInternalServerError("server error")
+		return nil
 	}
 	
 	if respJson.Summary.Action == "reject" {
@@ -121,8 +121,8 @@ func CheckImage(fileHeader *multipart.FileHeader, fileName string) *rest_err.Res
 
 	if respJson.Status != "success" {
 		logger.Error("Error in response from Sightengine", errors.New(respJson.Status), zap.String("journey", "CheckImage"))
-		return rest_err.NewInternalServerError("server error")
+		return nil
 	}
-	fmt.Println(respJson)
+	
 	return nil
 }
