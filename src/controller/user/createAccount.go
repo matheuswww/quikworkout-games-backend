@@ -44,9 +44,9 @@ func (uc *userController) CreateAccount(c *gin.Context) {
 		c.JSON(restErr.Code, restErr)
 		return
 	}
-	const maxSize = 4 * 1024 * 1024
+	const maxSize = 6 * 1024 * 1024
 	if createAccountRequest.Image.Size > maxSize {
-		restErr := rest_err.NewBadRequestError("image size must be less than or equal to 4MB")
+		restErr := rest_err.NewBadRequestError("image size must be less than or equal to 6MB")
 		c.JSON(restErr.Code, restErr)
 		return
 	}
