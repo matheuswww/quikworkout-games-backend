@@ -1,22 +1,24 @@
 package admin_request
 
+import "mime/multipart"
+
 type CreateEdition struct {
-	StartDate    string      `json:"start_date" binding:"required" validate:"start_date"`
-	ClosingDate  string      `json:"closing_date" binding:"required" validate:"closing_date"`
-	ClothingName string      `json:"clothing_name" binding:"required,max=15"`
-	Rules        string      `json:"rules" binding:"required"`
-	Challenge    []Challenge `json:"challenge" binding:"required" validate:"dive"`
-	Tops         []Top       `json:"tops" binding:"required" validate:"dive"`
+	StartDate    string                `form:"start_date" binding:"required" validate:"start_date"`
+	ClosingDate  string                `form:"closing_date" binding:"required" validate:"closing_date"`
+	ClothingName string                `form:"clothing_name" binding:"required,max=15"`
+	Rules        *multipart.FileHeader `form:"rules" binding:"required"`
+	Challenge    string           	   `form:"challenge" binding:"required"`
+	Tops         string                `form:"tops" binding:"required"`
 }
 
 type Top struct {
-	Top      int    `json:"top" validate:"required"`
-	Gain     int    `json:"gain"`
-	Category string `json:"category" validate:"required,category"`
+	Top      int
+	Gain     int
+	Category string
 }
 
 type Challenge struct {
-	Challenge string `json:"challenge" validate:"required"`
-	Category  string `json:"category" validate:"required,category"`
-	Sex       string `json:"sex" validate:"required,sex"`
+	Challenge string
+	Category  string
+	Sex       string
 }

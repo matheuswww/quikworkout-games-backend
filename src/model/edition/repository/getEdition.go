@@ -3,7 +3,10 @@ package edition_repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
@@ -17,7 +20,7 @@ func (er *editionRepository) GetEdition(number, limit int, cursor string) ([]edi
 	defer cancel()
 	var args []any
 
-	query := "SELECT e.edition_id, e.start_date, e.closing_date, e.rules, e.number, t.top, t.gain, t.category, c.challenge, c.category, c.sex, e.created_at FROM (SELECT edition_id, start_date, closing_date, rules, number, created_at FROM edition "
+	query := "SELECT e.edition_id, e.start_date, e.closing_date, e.number, t.top, t.gain, t.category, c.challenge, c.category, c.sex, e.created_at FROM (SELECT edition_id, start_date, closing_date, number, created_at FROM edition "
 	if number != 0 || cursor != "" {
 		query += "WHERE "
 	}
@@ -56,11 +59,11 @@ func (er *editionRepository) GetEdition(number, limit int, cursor string) ([]edi
 	topMap := make(map[string]bool)
 	
 	for rows.Next() {
-		var id, start_date, closing_date, rules, challenge, challengeCategory, sex, created_at string
+		var id, start_date, closing_date, challenge, challengeCategory, sex, created_at string
 		var number int
 		var topCategory sql.NullString
 		var gain, top sql.NullInt64
-		err := rows.Scan(&id, &start_date, &closing_date, &rules, &number, &top, &gain, &topCategory, &challenge, &challengeCategory, &sex, &created_at)
+		err := rows.Scan(&id, &start_date, &closing_date, &number, &top, &gain, &topCategory, &challenge, &challengeCategory, &sex, &created_at)
 		if err != nil {
 			logger.Error("Error trying scan row", err, zap.String("journey", "GetEdition Repository"))
 			return nil, rest_err.NewInternalServerError("server error")
@@ -71,7 +74,11 @@ func (er *editionRepository) GetEdition(number, limit int, cursor string) ([]edi
 				editionDomain.SetChallenge(challenges)
 				editionsDomain = append(editionsDomain, editionDomain)
 			}
-			editionDomain = edition_domain.NewEditionDomain(id, start_date, closing_date, rules, nil, nil, number, created_at)
+			link, restErr := getPdfLink(id)
+			if restErr != nil {
+				return nil, restErr
+			}
+			editionDomain = edition_domain.NewEditionDomain(id, start_date, closing_date, link, nil, nil, number, created_at)
 			tops = nil
 		}
 		if _, exists := challengeMap[challengeCategory+challenge+sex]; !exists {
@@ -104,4 +111,37 @@ func (er *editionRepository) GetEdition(number, limit int, cursor string) ([]edi
 		return nil, rest_err.NewNotFoundError("no edition found")
 	}
 	return editionsDomain, nil
+}
+
+func getPdfLink(id string) (string, *rest_err.RestErr) {
+	filename := id + ".pdf"
+	
+	baseDir, err := filepath.Abs("pdf")
+	if err != nil {
+		logger.Error("Error trying get abs path", err, zap.String("journey", "getPdfLink"))
+		return "", rest_err.NewInternalServerError("server error")
+	}
+
+	err = filepath.Walk(baseDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			logger.Error("Error trying filepath.Walk", err, zap.String("journey", "getPdfLink"))
+			return err
+		}
+		if !info.IsDir() && info.Name() == filename {
+			return fmt.Errorf("found")
+		}
+		return nil
+	})
+
+	if err != nil && err.Error() != "found" {
+		logger.Error("Error trying filepath.Walk", err, zap.String("journey", "getPdfLink"))
+		return "", rest_err.NewInternalServerError("server error")
+	}
+
+	url := os.Getenv("URL")
+	if url == "" {
+		logger.Error("Error trying get env", errors.New("URL not found"), zap.String("journey", "getPdfLink"))
+		return "", rest_err.NewInternalServerError("server error")
+	}
+	return fmt.Sprintf("%s/pdf/%s", url, filename), nil
 }

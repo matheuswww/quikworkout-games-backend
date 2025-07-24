@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -36,6 +37,18 @@ func main() {
 	model_util.InitDb(mysql)
 	router.Use(cors.New(*corsConfig))
 	router.Static("/images", "./images")
+	router.GET("/pdf/download/:filename", func(c *gin.Context) {
+		filename := c.Param("filename")
+		filename = filepath.Base(filename)
+		filepath := filepath.Join("./pdf", filename)
+		if _, err := os.Stat(filepath); os.IsNotExist(err) {
+				c.JSON(http.StatusNotFound, gin.H{"error": "Arquivo não encontrado"})
+				return
+		}
+		c.Header("Content-Disposition", "attachment; filename="+filename)
+		c.Header("Content-Type", "application/octet-stream")
+		c.File(filepath)
+	})
 	routes.InitRoutes(&router.RouterGroup, mysql)
 	chanError := make(chan error)
 	go graceFullyShutdown(router, "8081", chanError)

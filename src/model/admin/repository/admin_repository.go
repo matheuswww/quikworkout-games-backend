@@ -19,7 +19,7 @@ type adminRepository struct {
 }
 
 type AdminRepository interface {
-	CreateEdition(createEditionRequest *admin_request.CreateEdition) *rest_err.RestErr
+	CreateEdition(createEditionRequest *admin_request.CreateEdition, tops []admin_request.Top, challenges []admin_request.Challenge, savePdf func(id string) *rest_err.RestErr) (*rest_err.RestErr)
 	GetParticipants(getParticipantsRequest *admin_request.GetParticipants) (*admin_response.GetParticipants, *sql.DB, *rest_err.RestErr)
 	CheckVideo(videoID, editionId, category, sex string) *rest_err.RestErr
 	DesqualifyVideo(videoID, editionId, category, sex, desqualifed string) *rest_err.RestErr

@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (ar *adminRepository) CreateEdition(createEditionRequest *admin_request.CreateEdition) *rest_err.RestErr {
+func (ar *adminRepository) CreateEdition(createEditionRequest *admin_request.CreateEdition, tops []admin_request.Top, challenges []admin_request.Challenge, savePdf func(id string) *rest_err.RestErr) (*rest_err.RestErr) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 	var clothing_id string
@@ -28,15 +28,20 @@ func (ar *adminRepository) CreateEdition(createEditionRequest *admin_request.Cre
 		return rest_err.NewInternalServerError("server error")
 	}
 
+	id := uuid.NewString()
+	restErr := savePdf(id)
+	if restErr != nil {
+		return restErr
+	}
+
 	tx, err := ar.mysql.Begin()
 	if err != nil {
 		logger.Error("Error trying init tx", err, zap.String("journey", "CreateEdition Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
 
-	id := uuid.NewString()
-	query = "INSERT INTO edition (edition_id, start_date, closing_date, rules, clothing_id) VALUES (?, ?, ?, ?, ?)"
-	_, err = tx.ExecContext(ctx, query, id, createEditionRequest.StartDate, createEditionRequest.ClosingDate, createEditionRequest.Rules, clothing_id)
+	query = "INSERT INTO edition (edition_id, start_date, closing_date, clothing_id) VALUES (?, ?, ?, ?)"
+	_, err = tx.ExecContext(ctx, query, id, createEditionRequest.StartDate, createEditionRequest.ClosingDate, clothing_id)
 	if err != nil {
 		logger.Error("Error trying insert edition", err, zap.String("journey", "CreateEdition Repository"))
 		err = tx.Rollback()
@@ -46,10 +51,10 @@ func (ar *adminRepository) CreateEdition(createEditionRequest *admin_request.Cre
 		}
 		return rest_err.NewInternalServerError("server error")
 	}
-
-	for i := 0; i < len(createEditionRequest.Tops); i++ {
+	
+	for i := 0; i < len(tops); i++ {
 		query = "INSERT INTO top (edition_id, top, gain, category) VALUES (?, ?, ?, ?)"
-		_, err := tx.ExecContext(ctx, query, id, createEditionRequest.Tops[i].Top, createEditionRequest.Tops[i].Gain, createEditionRequest.Tops[i].Category)
+		_, err := tx.ExecContext(ctx, query, id, tops[i].Top, tops[i].Gain, tops[i].Category)
 		if err != nil {
 			logger.Error("Error trying insert top", err, zap.String("journey", "CreateEdition Repository"))
 			err = tx.Rollback()
@@ -61,9 +66,9 @@ func (ar *adminRepository) CreateEdition(createEditionRequest *admin_request.Cre
 		}
 	}
 
-	for i := 0; i < len(createEditionRequest.Challenge); i++ {
+	for i := 0; i < len(challenges); i++ {
 		query = "INSERT INTO challenge (edition_id, challenge, category, sex) VALUES (?, ?, ?, ?)"
-		_, err := tx.ExecContext(ctx, query, id, createEditionRequest.Challenge[i].Challenge, createEditionRequest.Challenge[i].Category, createEditionRequest.Challenge[i].Sex)
+		_, err := tx.ExecContext(ctx, query, id, challenges[i].Challenge, challenges[i].Category, challenges[i].Sex)
 		if err != nil {
 			logger.Error("Error trying insert challenge", err, zap.String("journey", "CreateEdition Repository"))
 			err = tx.Rollback()
