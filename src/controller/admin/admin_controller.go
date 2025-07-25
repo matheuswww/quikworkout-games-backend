@@ -24,4 +24,5 @@ type AdminController interface {
 	MakePlacing(c *gin.Context)
 	PutTime(c *gin.Context)
 	GrantTicket(c *gin.Context)
+	PutNoReps(c *gin.Context)
 }

@@ -68,7 +68,7 @@ func init() {
 	}))
 
 	errors = append(errors, Validator.RegisterValidation("closing_date", func(fl validator.FieldLevel) bool {
-		dateStr := fl.Field().String		()
+		dateStr := fl.Field().String()
 		dateRegex := `^20\d\d-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$`
 		matched, _ := regexp.MatchString(dateRegex, dateStr)
 		if !matched {
@@ -106,8 +106,12 @@ func init() {
 
 
 	errors = append(errors, Validator.RegisterValidation("time", func(fl validator.FieldLevel) bool {
+		val := fl.Field().String()
+		if(val == "") {
+			return true
+		}
 		pattern := `^([01]\d|2[0-3]):[0-5]\d:[0-5]\d\.\d{3}$`
-		matched, _ := regexp.MatchString(pattern, fl.Field().String())
+		matched, _ := regexp.MatchString(pattern, val)
 		return matched
 	}))
 }

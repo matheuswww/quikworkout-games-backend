@@ -25,4 +25,5 @@ type AdminService interface {
 	MakePlacing(editionId, category, sex string) *rest_err.RestErr
 	PutTime(videoId, editionId, category, sex, userTime string) *rest_err.RestErr
 	GrantTicket(user string) *rest_err.RestErr
+	PutNoreps(putNorepsRequest *admin_request.PutNoreps) *rest_err.RestErr 
 }

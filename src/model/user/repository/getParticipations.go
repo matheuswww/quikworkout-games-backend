@@ -27,7 +27,7 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 
 	from := "FROM participant AS p JOIN edition AS e ON p.edition_id = e.edition_id LEFT JOIN top AS t ON p.placing = t.top AND t.edition_id = p.edition_id AND t.category = p.category AND p.placing IS NOT NULL WHERE p.user_id = ? AND "
 	moreDataQuery := "SELECT 1 " + from
-	query = "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.desqualified, p.category, p.sex, p.sent, p.checked, p.created_at, t.gain " + from
+	query = "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.desqualified, p.category, p.noreps, p.sex, p.sent, p.checked, p.created_at, t.gain " + from
 	var args []any
 	var moreDataArgs []any
 	args = append(args, user_domain.GetId())
@@ -72,8 +72,8 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 		var number int
 		var gain sql.NullInt64
 		var checked, sent bool
-		var placing, user_time, desqualified sql.NullString
-		err := rows.Scan(&video_id, &placing, &edition_id, &number, &user_time, &desqualified, &category, &sex, &sent, &checked, &created_at, &gain)
+		var placing, user_time, desqualified, noreps sql.NullString
+		err := rows.Scan(&video_id, &placing, &edition_id, &number, &user_time, &desqualified, &category, &noreps, &sex, &sent, &checked, &created_at, &gain)
 		if err != nil {
 			logger.Error("Error trying scan", err, zap.String("journey", "GetParticipantions Repository"))
 			return nil, nil, rest_err.NewInternalServerError("server error")
@@ -82,6 +82,11 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 		var validUserTime any = nil
 		var validDesqualified any = nil
 		var validGain any = nil
+		var validNoreps any = nil
+
+		if noreps.Valid {
+			validNoreps = noreps.String
+		}
 		if gain.Valid {
 			validGain = gain.Int64
 		}
@@ -103,6 +108,7 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 			Gain:         validGain,
 			UserTime:     validUserTime,
 			Category:     category,
+			Noreps:       validNoreps,
 			Sex:          sex,
 			Desqualified: validDesqualified,
 			Checked:      checked,

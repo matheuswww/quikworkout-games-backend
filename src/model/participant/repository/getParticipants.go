@@ -31,12 +31,12 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 		query = "SELECT edition_id, closing_date FROM edition WHERE edition_id = ?"
 		args = append(args, getParticipantRequest.EditionId)
 	}
-	
+
 	var edition_id string
 	err := pr.mysql.QueryRowContext(ctx, query, args...).Scan(&edition_id, &closing_date)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil,rest_err.NewNotFoundError("no edition found")
+			return nil, rest_err.NewNotFoundError("no edition found")
 		}
 		logger.Error("Error trying get edition", err, zap.String("journey", "GetParticipant Repository"))
 		return nil, rest_err.NewInternalServerError("server error")
@@ -48,10 +48,10 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 		logger.Error("Error trying parseDate", err, zap.String("journey", "GetParticipant Repository"))
 		return nil, rest_err.NewInternalServerError("server error")
 	}
-	
+
 	t = t.AddDate(0, 0, 10)
 	t = time.Date(t.Year(), t.Month(), t.Day(), 16, 0, 0, 0, t.Location())
-	
+
 	if !time.Now().After(t) {
 		month := monthNames[int(t.Month())-1]
 		dia := t.Day()
@@ -59,9 +59,9 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 		msg := fmt.Sprintf("Os resultados serão liberados em %d de %s às %s", dia, month, hora)
 		return &participant_response.GetParticipant{
 			Particiapants:    nil,
-			ClosingDate: closing_date,
+			ClosingDate:      closing_date,
 			VideoReleaseTime: msg,
-			More: false,
+			More:             false,
 		}, nil
 	}
 
@@ -69,10 +69,10 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 	args = nil
 
 	args = append(args, getParticipantRequest.EditionId)
-	moreDataArgs := []any{ getParticipantRequest.EditionId }
+	moreDataArgs := []any{getParticipantRequest.EditionId}
 	from := "FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id JOIN challenge AS c ON p.edition_id = c.edition_id AND c.category = p.category AND c.sex = p.sex WHERE p.edition_id = ? AND p.checked IS true AND p.sent IS true AND desqualified IS NULL AND "
 	moreData := "SELECT 1 " + from
-	query = "SELECT p.video_id, u.user_id, u.name, p.category, p.sex, u.user, p.edition_id, p.user_time, p.placing, c.challenge, p.created_at " + from
+	query = "SELECT p.video_id, u.user_id, u.name, p.category, p.noreps, p.sex, u.user, p.edition_id, p.user_time, p.placing, c.challenge, p.created_at " + from
 	if getParticipantRequest.Category != "" {
 		moreData += "p.category = ? AND "
 		query += "p.category = ? AND "
@@ -104,10 +104,10 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 		query += "(p.user_time > ? OR p.user_time IS NULL) AND "
 		args = append(args, getParticipantRequest.CursorUserTime)
 	}
-	query = query[:len(query) - 4]
+	query = query[:len(query)-4]
 
 	order := "ORDER BY p.placing IS NULL, p.placing ASC, p.user_time IS NULL, p.user_time ASC, p.created_at DESC "
-	query += order+"LIMIT 10 "
+	query += order + "LIMIT 10 "
 
 	rows, err := pr.mysql.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -118,32 +118,38 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 	var participants []participant_response.Participant
 	for rows.Next() {
 		var video_id, user_id, name, category, sex, user, edition_id, challenge, created_at string
-		var userTime, placing sql.NullString
-		err = rows.Scan(&video_id, &user_id, &name, &category, &sex, &user, &edition_id, &userTime, &placing, &challenge, &created_at)
+		var userTime, placing, noreps sql.NullString
+		err = rows.Scan(&video_id, &user_id, &name, &category, &noreps, &sex, &user, &edition_id, &userTime, &placing, &challenge, &created_at)
 		if err != nil {
 			logger.Error("Error trying Scan", err, zap.String("journey", "GetParticipant Repository"))
 			return nil, rest_err.NewInternalServerError("server error")
 		}
 		var userTimeValid any = nil
 		var userPlacingValid any = nil
+		var norepsValid any = nil
+
+		if noreps.Valid {
+			norepsValid = noreps.String
+		}
 		if placing.Valid {
 			userPlacingValid = placing.String
 		}
- 		if userTime.Valid {
+		if userTime.Valid {
 			userTimeValid = userTime.String
 		}
 		participants = append(participants, participant_response.Participant{
-			VideoId: video_id,
-			UserTime: userTimeValid,
+			VideoId:    video_id,
+			UserTime:   userTimeValid,
 			Edition_id: edition_id,
-			Placing: userPlacingValid,
-			Category: category,
-			Sex: 			sex,
-			Challenge: challenge,
+			Placing:    userPlacingValid,
+			Category:   category,
+			Noreps:     norepsValid,
+			Sex:        sex,
+			Challenge:  challenge,
 			User: participant_response.User{
 				UserId: user_id,
-				Name: name,
-				User: user,
+				Name:   name,
+				User:   user,
 			},
 			CreatedAt: created_at,
 		})
@@ -153,7 +159,7 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 		logger.Error("Error trying get participants", errors.New("not found"), zap.String("journey", "GetParticipant Repository"))
 		return nil, rest_err.NewNotFoundError("no participants were found")
 	}
-	
+
 	last := participants[len(participants)-1]
 	if last.UserTime != nil {
 		moreData += "(p.user_time > ? OR p.user_time IS NULL) AND "
@@ -167,8 +173,8 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 		moreDataArgs = append(moreDataArgs, last.CreatedAt)
 	}
 
-	moreData = moreData[:len(moreData) - 4]
-	moreData += order+ "LIMIT 1"
+	moreData = moreData[:len(moreData)-4]
+	moreData += order + "LIMIT 1"
 
 	more := false
 	err = pr.mysql.QueryRowContext(ctx, moreData, moreDataArgs...).Scan(&more)
@@ -178,9 +184,9 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 	}
 
 	return &participant_response.GetParticipant{
-		Particiapants: participants,
-		More: more,
-		ClosingDate: "",
+		Particiapants:    participants,
+		More:             more,
+		ClosingDate:      "",
 		VideoReleaseTime: "",
 	}, nil
 }

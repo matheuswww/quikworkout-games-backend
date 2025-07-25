@@ -46,6 +46,7 @@ func InitAdminRoutes(r *gin.RouterGroup, database *sql.DB) {
 	adminGroup.POST("/makePlacing", adminController.MakePlacing)
 	adminGroup.POST("/putTime", adminController.PutTime)
 	adminGroup.POST("/grantTicket", adminController.GrantTicket)
+	adminGroup.POST("/putNoreps", adminController.PutNoReps)
 }
 
 func initAdminRoutes(database *sql.DB) admin_controller.AdminController {
