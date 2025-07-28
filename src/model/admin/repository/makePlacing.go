@@ -45,7 +45,7 @@ func (ar *adminRepository) MakePlacing(editionId, category, sex string) *rest_er
 	}
 
 	var count int
-	query = "SELECT COUNT(*) FROM participant WHERE edition_id = ? AND category = ? AND sex = ? AND desqualified IS NULL AND (user_time IS NULL OR checked IS FALSE)"
+	query = "SELECT COUNT(*) FROM participant WHERE edition_id = ? AND category = ? AND sex = ? AND desqualified IS NULL AND checked IS FALSE"
 	err = ar.mysql.QueryRowContext(ctx, query, editionId, category, sex).Scan(&count)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -56,7 +56,7 @@ func (ar *adminRepository) MakePlacing(editionId, category, sex string) *rest_er
 	}
 	if count > 0 {
 		logger.Error("Error trying MakePlacing", errors.New("there are still participants without a time"), zap.String("journey", "MakePlacing Repository"))
-		return rest_err.NewBadRequestError("there are still participants without a time or checked")
+		return rest_err.NewBadRequestError("there are still participants without checked")
 	}
 
 	query = "SELECT top, gain FROM top WHERE edition_id = ? AND category = ? ORDER BY top ASC"
@@ -81,92 +81,25 @@ func (ar *adminRepository) MakePlacing(editionId, category, sex string) *rest_er
 		})
 	}
 	
-	query = "SELECT user_id FROM participant WHERE edition_id = ? AND category = ? AND sex = ? AND desqualified IS NULL ORDER BY user_time ASC"
-	rows, err = ar.mysql.QueryContext(ctx, query, editionId, category, sex)
-	if err != nil {
-		logger.Error("Error trying get participants", err, zap.String("journey", "MakePlacing Repository"))
-		return rest_err.NewInternalServerError("server error")
-	}
-	defer rows.Close()
-	
-	var userIds []string
-	for rows.Next() {
-		var user_id string
-		err := rows.Scan(&user_id)
-		if err != nil {
-			logger.Error("Error trying Scan", err, zap.String("journey", "MakePlacing Repository"))
-			return rest_err.NewInternalServerError("server error")
-		}
-		userIds = append(userIds, user_id)
-	}
-
 	tx, err := ar.mysql.Begin()
 	if err != nil {
 		logger.Error("Error trying Begin", err, zap.String("journey", "MakePlacing Repository"))
 		return rest_err.NewInternalServerError("server error")
 	}
-
-	query = "UPDATE participant SET placing = CASE user_id "
-	endQuery := "END WHERE edition_id = ? AND category = ? AND sex = ? AND user_id IN ("
-	endQueryArgs := []any{editionId, category, sex}
-	args := []any{}
-
-	for i, userId := range userIds {
-		query += "WHEN ? THEN ? "
-		if i > 0 {
-			endQuery += ", "
-		}
-		endQuery += "?"
-		endQueryArgs = append(endQueryArgs, userId)
-		args = append(args, userId, i+1)
+	
+	userIds, restErr := updateFinalTime(ctx, tx, editionId, category, sex)
+	if restErr != nil {
+		return restErr
 	}
-	endQuery += ")"
-	query += endQuery
-	args = append(args, endQueryArgs...)
 
-	_,err = tx.ExecContext(ctx, query, args...)
-	if err != nil {
-		logger.Error("Error trying update participants", err, zap.String("journey", "MakePlacing Repository"))
-		err := tx.Rollback()
-		if err != nil {
-			logger.Error("Error trying rollback", err, zap.String("journey", "MakePlacing Repository"))
-			return rest_err.NewInternalServerError("server error")
-		}
-		return rest_err.NewInternalServerError("server error")
+	restErr = updatePlacing(ctx, tx, userIds, editionId, category, sex)
+	if restErr != nil {
+		return  restErr
 	}
-	args = nil
-	endQueryArgs = nil
 
-	if(len(tops) > 0) {
-		query = "UPDATE user_games SET earnings = CASE user_id "
-		endQuery = "END WHERE user_id IN ("
-		for i, userId := range userIds {
-			if i <= len(tops) - 1 {
-			query += "WHEN ? THEN earnings + ? "
-			args = append(args, userId, tops[i].gain)
-			if i > 0 {
-				endQuery += ", "
-			}
-			endQuery += "?"
-			endQueryArgs = append(endQueryArgs, userId)
-			continue
-		}
-		break
-	}
-	endQuery += ")"
-	query += endQuery
-
-	args = append(args, endQueryArgs...)
-	_,err = tx.ExecContext(ctx, query, args...)
-	if err != nil {
-		logger.Error("Error trying update participants", err, zap.String("journey", "MakePlacing Repository"))
-		err := tx.Rollback()
-		if err != nil {
-			logger.Error("Error trying rollback", err, zap.String("journey", "MakePlacing Repository"))
-			return rest_err.NewInternalServerError("server error")
-		}
-		return rest_err.NewInternalServerError("server error")
-	}
+	restErr = updateEarnings(ctx, tx, userIds, tops)
+	if restErr != nil {
+		return  restErr
 	}
 
 	err = tx.Commit()
@@ -175,5 +108,114 @@ func (ar *adminRepository) MakePlacing(editionId, category, sex string) *rest_er
 		return rest_err.NewInternalServerError("server error")
 	}
 
+	return nil
+}
+
+func updateFinalTime(ctx context.Context, tx *sql.Tx, editionId, category, sex string) ([]string, *rest_err.RestErr) {
+	query := `SELECT user_id, user_time FROM participant WHERE edition_id = ? AND category = ? AND sex = ? AND desqualified IS NULL ORDER BY user_time ASC`
+	rows, err := tx.QueryContext(ctx, query, editionId, category, sex)
+	if err != nil {
+		logger.Error("Error trying get participants", err, zap.String("journey", "MakePlacing Repository"))
+		_ = tx.Rollback()
+		return nil, rest_err.NewInternalServerError("server error")
+	}
+	defer rows.Close()
+
+	var userIds []string
+	var times []string
+	for rows.Next() {
+		var userId, time string
+		if err := rows.Scan(&userId, &time); err != nil {
+			logger.Error("Error trying Scan", err, zap.String("journey", "MakePlacing Repository"))
+			_ = tx.Rollback()
+			return nil, rest_err.NewInternalServerError("server error")
+		}
+		userIds = append(userIds, userId)
+		times = append(times, time)
+	}
+
+	query = "UPDATE participant SET final_time = CASE user_id "
+	endQuery := "END WHERE edition_id = ? AND category = ? AND sex = ? AND user_id IN ("
+	args := []any{}
+	endArgs := []any{editionId, category, sex}
+
+	for i, userId := range userIds {
+		query += "WHEN ? THEN ? "
+		args = append(args, userId, times[i])
+		if i > 0 {
+			endQuery += ", "
+		}
+		endQuery += "?"
+		endArgs = append(endArgs, userId)
+	}
+	endQuery += ")"
+	query += endQuery
+	args = append(args, endArgs...)
+
+	if _, err := tx.ExecContext(ctx, query, args...); err != nil {
+		logger.Error("Error updating final_time", err, zap.String("journey", "MakePlacing Repository"))
+		_ = tx.Rollback()
+		return nil, rest_err.NewInternalServerError("server error")
+	}
+	return userIds, nil
+}
+
+func updatePlacing(ctx context.Context, tx *sql.Tx, userIds []string, editionId, category, sex string) *rest_err.RestErr {
+	query := "UPDATE participant SET placing = CASE user_id "
+	endQuery := "END WHERE edition_id = ? AND category = ? AND sex = ? AND user_id IN ("
+	args := []any{}
+	endArgs := []any{editionId, category, sex}
+
+	for i, userId := range userIds {
+		query += "WHEN ? THEN ? "
+		args = append(args, userId, i+1)
+		if i > 0 {
+			endQuery += ", "
+		}
+		endQuery += "?"
+		endArgs = append(endArgs, userId)
+	}
+	endQuery += ")"
+	query += endQuery
+	args = append(args, endArgs...)
+
+	if _, err := tx.ExecContext(ctx, query, args...); err != nil {
+		logger.Error("Error updating placing", err, zap.String("journey", "MakePlacing Repository"))
+		_ = tx.Rollback()
+		return rest_err.NewInternalServerError("server error")
+	}
+	return nil
+}
+
+func updateEarnings (ctx context.Context, tx *sql.Tx, userIds []string, tops []top,) *rest_err.RestErr {
+	if len(tops) == 0 {
+		return nil
+	}
+	query := "UPDATE user_games SET earnings = CASE user_id "
+	endQuery := "END WHERE user_id IN ("
+	args := []any{}
+	endArgs := []any{}
+
+	for i, userId := range userIds {
+		if i >= len(tops) {
+			break
+		}
+		query += "WHEN ? THEN earnings + ? "
+		args = append(args, userId, tops[i].gain)
+		if i > 0 {
+			endQuery += ", "
+		}
+		endQuery += "?"
+		endArgs = append(endArgs, userId)
+	}
+	endQuery += ")"
+	query += endQuery
+	args = append(args, endArgs...)
+
+	if _, err := tx.ExecContext(ctx, query, args...); err != nil {
+		logger.Error("Error updating earnings", err, zap.String("journey", "MakePlacing Repository"))
+		_ = tx.Rollback()
+		return rest_err.NewInternalServerError("server error")
+	}
 	return nil
 }

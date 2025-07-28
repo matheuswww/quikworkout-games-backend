@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (ar *adminRepository) PutTime(videoId, editionId, category, sex, userTime string) *rest_err.RestErr {
+func (ar *adminRepository) PutTime(videoId, editionId, category, sex, finalTime string) *rest_err.RestErr {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -40,12 +40,12 @@ func (ar *adminRepository) PutTime(videoId, editionId, category, sex, userTime s
 		return rest_err.NewBadRequestError("this user is desqualified")
 	}
 
-	var putTimeParam any = userTime
-	if userTime == "" {
+	var putTimeParam any = finalTime
+	if finalTime == "" {
 		putTimeParam = nil		
 	}
 
-	query = "UPDATE participant SET user_time = ? WHERE video_id = ?"
+	query = "UPDATE participant SET final_time = ? WHERE video_id = ?"
 	_,err = ar.mysql.ExecContext(ctx, query, putTimeParam, videoId)
 	if err != nil {
 		logger.Error("Error trying update participant", err, zap.String("journey", "PutTime Repository"))

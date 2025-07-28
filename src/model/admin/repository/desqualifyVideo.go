@@ -38,7 +38,7 @@ func (ar *adminRepository) DesqualifyVideo(videoID, editionId, category, sex, de
 	if desqualifed == "" {
 		desqualifedParam = nil		
 	}
-	query = "UPDATE participant SET desqualified = ?, user_time = NULL WHERE video_id = ?"
+	query = "UPDATE participant SET desqualified = ?, final_time = NULL WHERE video_id = ?"
 	_, err = ar.mysql.ExecContext(ctx, query, desqualifedParam, videoID)
 	if err != nil {
 		logger.Error("Error trying update participant", err, zap.String("journey", "DesqualifyVideo Repository"))

@@ -18,9 +18,10 @@ type Participant struct {
 	Edition      int    `json:"edition"`
 	EditionId    string `json:"edition_id"`
 	Challenge    string `json:"challenge"`
+	UserTime     string `json:"user_time"`
 	Placing      any    `json:"placing"`
 	Gain         any    `json:"gain"`
-	UserTime     any    `json:"user_time"`
+	FinalTime    any    `json:"final_time"`
 	Desqualified any    `json:"desqualified"`
 	Checked      bool   `json:"checked"`
 	CreatedAt    string `json:"createdAt"`

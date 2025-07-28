@@ -70,9 +70,9 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 
 	args = append(args, getParticipantRequest.EditionId)
 	moreDataArgs := []any{getParticipantRequest.EditionId}
-	from := "FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id JOIN challenge AS c ON p.edition_id = c.edition_id AND c.category = p.category AND c.sex = p.sex WHERE p.edition_id = ? AND p.checked IS true AND p.sent IS true AND desqualified IS NULL AND "
+	from := "FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id JOIN challenge AS c ON p.edition_id = c.edition_id AND c.category = p.category AND c.sex = p.sex WHERE p.edition_id = ? AND p.checked IS true AND p.sent IS true AND desqualified IS NULL AND p.placing IS NOT NULL AND "
 	moreData := "SELECT 1 " + from
-	query = "SELECT p.video_id, u.user_id, u.name, p.category, p.noreps, p.sex, u.user, p.edition_id, p.user_time, p.placing, c.challenge, p.created_at " + from
+	query = "SELECT p.video_id, u.user_id, u.name, p.category, p.noreps, p.sex, u.user, p.edition_id, p.final_time, p.placing, c.challenge, p.created_at " + from
 	if getParticipantRequest.Category != "" {
 		moreData += "p.category = ? AND "
 		query += "p.category = ? AND "
@@ -96,13 +96,9 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 		moreDataArgs = append(moreDataArgs, getParticipantRequest.VideoId)
 		args = append(args, getParticipantRequest.VideoId)
 	}
-	if getParticipantRequest.CursorCreatedAt != "" {
-		query += "p.created_at < ? AND "
-		args = append(args, getParticipantRequest.CursorCreatedAt)
-	}
-	if getParticipantRequest.CursorUserTime != "" {
-		query += "(p.user_time > ? OR p.user_time IS NULL) AND "
-		args = append(args, getParticipantRequest.CursorUserTime)
+	if getParticipantRequest.CursorPlacing != 0 {
+		query += "p.placing > ? AND "
+		args = append(args, getParticipantRequest.CursorPlacing)
 	}
 	query = query[:len(query)-4]
 
@@ -117,14 +113,13 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 	defer rows.Close()
 	var participants []participant_response.Participant
 	for rows.Next() {
-		var video_id, user_id, name, category, sex, user, edition_id, challenge, created_at string
-		var userTime, placing, noreps sql.NullString
-		err = rows.Scan(&video_id, &user_id, &name, &category, &noreps, &sex, &user, &edition_id, &userTime, &placing, &challenge, &created_at)
+		var video_id, user_id, name, category, final_time, sex, user, edition_id, challenge, created_at string
+		var placing, noreps sql.NullString
+		err = rows.Scan(&video_id, &user_id, &name, &category, &noreps, &sex, &user, &edition_id, &final_time, &placing, &challenge, &created_at)
 		if err != nil {
 			logger.Error("Error trying Scan", err, zap.String("journey", "GetParticipant Repository"))
 			return nil, rest_err.NewInternalServerError("server error")
 		}
-		var userTimeValid any = nil
 		var userPlacingValid any = nil
 		var norepsValid any = nil
 
@@ -134,12 +129,9 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 		if placing.Valid {
 			userPlacingValid = placing.String
 		}
-		if userTime.Valid {
-			userTimeValid = userTime.String
-		}
 		participants = append(participants, participant_response.Participant{
 			VideoId:    video_id,
-			UserTime:   userTimeValid,
+			FinalTime:  final_time,
 			Edition_id: edition_id,
 			Placing:    userPlacingValid,
 			Category:   category,
@@ -161,17 +153,8 @@ func (pr *participantRepository) GetParticipants(getParticipantRequest *particip
 	}
 
 	last := participants[len(participants)-1]
-	if last.UserTime != nil {
-		moreData += "(p.user_time > ? OR p.user_time IS NULL) AND "
-		moreDataArgs = append(moreDataArgs, last.UserTime)
-	} else {
-		if getParticipantRequest.CursorUserTime != "" {
-			moreData += "(p.user_time > ? OR p.user_time IS NULL) AND "
-			moreDataArgs = append(moreDataArgs, getParticipantRequest.CursorUserTime)
-		}
-		moreData += "p.created_at < ? AND "
-		moreDataArgs = append(moreDataArgs, last.CreatedAt)
-	}
+	moreData += "p.placing > ? AND "
+	moreDataArgs = append(moreDataArgs, last.Placing)
 
 	moreData = moreData[:len(moreData)-4]
 	moreData += order + "LIMIT 1"

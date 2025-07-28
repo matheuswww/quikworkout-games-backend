@@ -41,7 +41,7 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	moreDataArgs := []any{getParticipantsRequest.EditionId}
 	from := "FROM participant AS p JOIN user_games AS u ON p.user_id = u.user_id JOIN user AS uq ON uq.user_id = u.user_id JOIN edition AS e ON p.edition_id = e.edition_id LEFT JOIN top AS t ON t.top = p.placing AND t.edition_id = p.edition_id AND t.category = p.category JOIN challenge AS c ON c.edition_id = p.edition_id AND c.category = p.category AND c.sex = p.sex WHERE p.edition_id = ? AND "
 	moreDataQuery := "SELECT 1 " + from
-	query = "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.desqualified, p.category, p.noreps, p.sex, c.challenge, p.sent, p.checked, u.user_id, u.name, u.user, t.gain, uq.email, p.created_at " + from
+	query = "SELECT p.video_id, p.placing, p.edition_id, e.number, p.user_time, p.final_time, p.desqualified, p.category, p.noreps, p.sex, c.challenge, p.sent, p.checked, u.user_id, u.name, u.user, t.gain, uq.email, p.created_at " + from
 	if getParticipantsRequest.Category != "" {
 		query += "p.category = ? AND "
 		moreDataQuery += "p.category = ? AND "
@@ -59,17 +59,27 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 		args = append(args, getParticipantsRequest.VideoId)
 		moreDataArgs = append(moreDataArgs, getParticipantsRequest.VideoId)
 	}
-	if getParticipantsRequest.CursorCreatedAt != "" {
-		query += "(p.created_at < ? OR p.user_time IS NOT NULL) AND "
-		args = append(args, getParticipantsRequest.CursorCreatedAt)
-	}
-	if getParticipantsRequest.CursorUserTime != "" {
-		query += "p.user_time > ? AND "
-		args = append(args, getParticipantsRequest.CursorUserTime)
+	if getParticipantsRequest.CursorFinalTime != "" && getParticipantsRequest.CursorCreatedAt != "" {
+		query += "(p.final_time > ? OR (p.final_time = ? AND p.created_at < ?) OR p.final_time IS NULL) AND "
+		args = append(args,
+			getParticipantsRequest.CursorFinalTime,
+			getParticipantsRequest.CursorFinalTime,
+			getParticipantsRequest.CursorCreatedAt,
+		)
+	} else if getParticipantsRequest.CursorUserTime != "" && getParticipantsRequest.CursorCreatedAt != "" {
+		query += "((p.user_time > ? OR (p.user_time = ? AND p.created_at < ?)) AND p.final_time IS NULL) AND "
+		args = append(args,
+			getParticipantsRequest.CursorUserTime,
+			getParticipantsRequest.CursorUserTime,
+			getParticipantsRequest.CursorCreatedAt,
+		)
+	} else if getParticipantsRequest.CursorPlacing != 0 {
+		query += "(p.placing > ? OR p.placing IS NULL) AND "
+		args = append(args, getParticipantsRequest.CursorPlacing)
 	}
 	query = query[:len(query)-4]
 
-	order := "ORDER BY p.placing, p.placing ASC, p.user_time IS NOT NULL, p.user_time ASC, p.created_at DESC "
+	order := "ORDER BY p.placing IS NULL, p.placing, p.final_time IS NULL, p.final_time, p.user_time, p.created_at DESC "
 	query += order + "LIMIT 10"
 
 	rows, err := ar.mysql.QueryContext(ctx, query, args...)
@@ -80,24 +90,24 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	defer rows.Close()
 	var participants []admin_response.Participant
 	for rows.Next() {
-		var video_id, user_id, edition_id, name, category, sex, challenge, user, email, created_at string
-		var userTime, placing, desqualified, noreps sql.NullString
+		var video_id, user_id, edition_id, name, category, sex, challenge, user, email, userTime, created_at string
+		var finalTime, placing, desqualified, noreps sql.NullString
 		var gain sql.NullInt64
 		var checked, sent bool
 		var number int
-		err = rows.Scan(&video_id, &placing, &edition_id, &number, &userTime, &desqualified, &category, &noreps, &sex, &challenge, &sent, &checked, &user_id, &name, &user, &gain, &email, &created_at)
+		err = rows.Scan(&video_id, &placing, &edition_id, &number, &userTime, &finalTime, &desqualified, &category, &noreps, &sex, &challenge, &sent, &checked, &user_id, &name, &user, &gain, &email, &created_at)
 		if err != nil {
 			logger.Error("Error trying Scan", err, zap.String("journey", "GetParticipants Repository"))
 			return nil, nil, rest_err.NewInternalServerError("server error")
 		}
 		var gainValid any = nil
-		var userTimeValid any = nil
+		var finalTimeValid any = nil
 		var placingValid any = nil
 		var desqualifiedValid any = nil
 		var norepsValid any = nil
 
 		if noreps.Valid {
-			norepsValid = noreps.String	
+			norepsValid = noreps.String
 		}
 		if desqualified.Valid {
 			desqualifiedValid = desqualified.String
@@ -105,8 +115,8 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 		if placing.Valid {
 			placingValid = placing.String
 		}
-		if userTime.Valid {
-			userTimeValid = userTime.String
+		if finalTime.Valid {
+			finalTimeValid = finalTime.String
 		}
 		if gain.Valid {
 			gainValid = gain.Int64
@@ -122,7 +132,8 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 			Sex:          sex,
 			Challenge:    challenge,
 			Gain:         gainValid,
-			UserTime:     userTimeValid,
+			UserTime:     userTime,
+			FinalTime:    finalTimeValid,
 			Desqualified: desqualifiedValid,
 			Checked:      checked,
 			User: admin_response.User{
@@ -140,15 +151,27 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	}
 
 	last := participants[len(participants)-1]
-	moreDataQuery += "(p.created_at < ? OR p.user_time IS NOT NULL) AND "
-	moreDataArgs = append(moreDataArgs, last.CreatedAt)
-	if last.UserTime != nil {
-		moreDataQuery += "p.user_time > ? AND "
-		moreDataArgs = append(moreDataArgs, last.UserTime)
+	if last.FinalTime != nil {
+		moreDataQuery += "(p.final_time > ? OR (p.final_time = ? AND p.created_at < ?) OR p.final_time IS NULL) AND "
+		moreDataArgs = append(moreDataArgs,
+			last.FinalTime,
+			last.FinalTime,
+			last.CreatedAt,
+		)
+	} else if last.Placing != nil {
+		moreDataQuery += "(p.placing > ? OR p.placing IS NULL) AND "
+		moreDataArgs = append(moreDataArgs, last.Placing)
+	}	else {
+		moreDataQuery += "((p.user_time > ? OR (p.user_time = ? AND p.created_at < ?)) AND p.final_time IS NULL) AND "
+		moreDataArgs = append(moreDataArgs,
+			last.UserTime,
+			last.UserTime,
+			last.CreatedAt,
+		)
 	}
+
 	moreDataQuery = moreDataQuery[:len(moreDataQuery)-4]
 	moreDataQuery += order
-
 	more := false
 	err = ar.mysql.QueryRowContext(ctx, moreDataQuery, moreDataArgs...).Scan(&more)
 	if err != nil && err != sql.ErrNoRows {

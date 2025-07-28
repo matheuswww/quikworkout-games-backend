@@ -24,8 +24,8 @@ func (cr *participantRepository) CreateParticipant(participantDomain participant
 	}
 	participantDomain.SetCategory(category)
 
-	query = "INSERT INTO participant (video_id, user_id, edition_id, category, sex, sent, checked) VALUES (?, ?, ?, ?, ?, ?, ?)"
-	_,err = cr.mysql.ExecContext(ctx, query, participantDomain.GetVideoID(), participantDomain.GetUserID(), participantDomain.GetEditionID(), participantDomain.GetCategory(), participantDomain.GetSex(), participantDomain.GetSent(), participantDomain.GetChecked())
+	query = "INSERT INTO participant (video_id, user_id, edition_id, category, sex, sent, checked, user_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+	_,err = cr.mysql.ExecContext(ctx, query, participantDomain.GetVideoID(), participantDomain.GetUserID(), participantDomain.GetEditionID(), participantDomain.GetCategory(), participantDomain.GetSex(), participantDomain.GetSent(), participantDomain.GetChecked(), participantDomain.GetUserTime())
 	if err != nil {
 		logger.Error("Error trying get participant", err, zap.String("journey", "CreateParticiapnt Repository"))
 		return rest_err.NewInternalServerError("server error")

@@ -4,8 +4,7 @@ type GetParticipant struct {
 	VideoId         string `form:"videoId"`
 	EditionId       string `form:"editionId"`
 	NotVideoId      string `form:"notVideoId"`
-	CursorCreatedAt string `form:"cursorCreatedAt"`
-	CursorUserTime  string `form:"cursorUserTime"`
+	CursorPlacing   int    `form:"cursorPlacing"`
 	Category        string `form:"category" validate:"category"`
 	Sex             string `form:"sex" validate:"sex"`
 	BestTime        bool   `form:"bestTime"`

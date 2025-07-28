@@ -16,7 +16,8 @@ type Participantion struct {
 	EditionId    string `json:"edition_id"`
 	Gain         any    `json:"gain"`
 	Placing      any    `json:"placing"`
-	UserTime     any    `json:"user_time"`
+	FinalTime    any    `json:"final_time"`
+	UserTime     string `json:"userTime"`
 	Desqualified any    `json:"desqualified"`
 	Category     string `json:"category"`
 	Noreps       any    `json:"noreps"`

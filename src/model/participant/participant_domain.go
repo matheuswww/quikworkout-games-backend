@@ -1,12 +1,11 @@
 package participant_domain
 
-import "time"
-
 type participant struct {
 	videoID   string
 	userID    string
 	editionID string
-	userTime  *time.Time
+	userTime  string
+	finalTime string
 	checked   bool
 	sent      bool
 	category  string
@@ -38,11 +37,19 @@ func (p *participant) SetEditionID(e string) {
 	p.editionID = e
 }
 
-func (p *participant) GetUserTime() *time.Time {
+func (p *participant) GetUserTime() string {
 	return p.userTime
 }
 
-func (p *participant) SetUserTime(a *time.Time) {
+func (p *participant) SetUserTime(a string) {
+	p.userTime = a
+}
+
+func (p *participant) GetFinalTime() string {
+	return p.userTime
+}
+
+func (p *participant) SetFinalTime(a string) {
 	p.userTime = a
 }
 

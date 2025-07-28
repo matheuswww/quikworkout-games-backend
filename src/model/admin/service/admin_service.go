@@ -23,7 +23,7 @@ type AdminService interface {
 	CheckVideo(videoID, category, sex, editionId string) *rest_err.RestErr
 	DesqualifyVideo(videoID, editionId, category, sex, desqualifed string) *rest_err.RestErr
 	MakePlacing(editionId, category, sex string) *rest_err.RestErr
-	PutTime(videoId, editionId, category, sex, userTime string) *rest_err.RestErr
+	PutTime(videoId, editionId, category, sex, finalTime string) *rest_err.RestErr
 	GrantTicket(user string) *rest_err.RestErr
 	PutNoreps(putNorepsRequest *admin_request.PutNoreps) *rest_err.RestErr 
 }

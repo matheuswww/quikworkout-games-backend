@@ -1,7 +1,5 @@
 package participant_domain
 
-import "time"
-
 type ParticipantDomainInterface interface {
 	GetVideoID() string
 	SetVideoID(string)
@@ -9,8 +7,8 @@ type ParticipantDomainInterface interface {
 	SetUserID(string)
 	GetEditionID() string
 	SetEditionID(string)
-	GetUserTime() *time.Time
-	SetUserTime(*time.Time)
+	GetUserTime() string
+	SetUserTime(string)
 	SetChecked(bool)
 	GetChecked() bool
 	SetSent(bool)
@@ -25,9 +23,10 @@ type ParticipantDomainInterface interface {
 
 func NewParticipantDomain(
 	videoID, userID, editionID string,
-	userTime *time.Time,
 	createdAt,
 	category,
+	userTime,
+	finalTime,
 	sex string,
 	checked bool,
 	sent bool,
@@ -37,6 +36,7 @@ func NewParticipantDomain(
 		userID:         userID,
 		editionID:      editionID,
 		userTime: 			userTime,
+		finalTime:      finalTime,
 		checked:        checked,
 		sent: 					sent,
 		category:				category,

@@ -49,7 +49,7 @@ func (pc *participantController) CreateParticipant(c *gin.Context) {
 		return
 	}
 
-	participant := participant_domain.NewParticipantDomain("", cookie.Id, "", nil, "", "", createParticipantRequest.Sex, false, false)
+	participant := participant_domain.NewParticipantDomain("", cookie.Id, "", "", "", createParticipantRequest.UserTime, "", createParticipantRequest.Sex, false, false)
 
 	form, restErr := pc.participantService.CreateParticipant(participant, createParticipantRequest.Title, createParticipantRequest.Size)
 	if restErr != nil {

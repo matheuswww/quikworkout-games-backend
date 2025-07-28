@@ -17,7 +17,7 @@ type Participant struct {
 	Challenge    string `json:"challenge"`
 	Title        any    `json:"title"`
 	ThumbnailUrl any    `json:"thumbnail_url"`
-	UserTime     any    `json:"user_time"`
+	FinalTime    string `json:"final_time"`
 	Placing      any    `json:"placing"`
 	User         User   `json:"user"`
 	CreatedAt    string `json:"createdAt"`
