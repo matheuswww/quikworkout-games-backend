@@ -16,7 +16,7 @@ import (
 )
 
 func InitAdminRoutes(r *gin.RouterGroup, database *sql.DB) {
-	adminController := initAdminRoutes(database)
+	adminController := GetAdminController(database)
 	cookieStore, err := admin_profile_cookie.Store()
 	if err != nil {
 		logger.Error("Error loading cookie store", err, zap.String("journey", "InitAdminRoutes"))
@@ -43,13 +43,13 @@ func InitAdminRoutes(r *gin.RouterGroup, database *sql.DB) {
 	adminGroup.GET("/getParticipants", adminController.GetParticipants)
 	adminGroup.POST("/checkVideo", adminController.CheckVideo)
 	adminGroup.POST("/desqualifyVideo", adminController.DesqualifyVideo)
-	adminGroup.POST("/makePlacing", adminController.MakePlacing)
 	adminGroup.POST("/putTime", adminController.PutTime)
-	adminGroup.POST("/grantTicket", adminController.GrantTicket)
 	adminGroup.POST("/putNoreps", adminController.PutNoReps)
+	adminGroup.POST("/makePlacing", adminController.MakePlacing)
+	adminGroup.POST("/grantTicket", adminController.GrantTicket)
 }
 
-func initAdminRoutes(database *sql.DB) admin_controller.AdminController {
+func GetAdminController(database *sql.DB) admin_controller.AdminController {
 	adminRepository := admin_repository.NewAdminRepository(database)
 	adminService := admin_service.NewAdminService(adminRepository)
 	adminController := admin_controller.NewAdminController(adminService)

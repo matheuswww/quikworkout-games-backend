@@ -37,7 +37,7 @@ func main() {
 	model_util.InitDb(mysql)
 	router.Use(cors.New(*corsConfig))
 	router.Static("/images", "./images")
-	router.GET("/pdf/download/:filename", func(c *gin.Context) {
+	router.GET("/pdf/:filename", func(c *gin.Context) {
 		filename := c.Param("filename")
 		filename = filepath.Base(filename)
 		filepath := filepath.Join("./pdf", filename)
