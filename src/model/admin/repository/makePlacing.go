@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/matheuswww/quikworkout-games-backend/src/configuration/logger"
@@ -87,12 +88,12 @@ func (ar *adminRepository) MakePlacing(editionId, category, sex string) *rest_er
 		return rest_err.NewInternalServerError("server error")
 	}
 	
-	userIds, restErr := updateFinalTime(ctx, tx, editionId, category, sex)
+	restErr := updateFinalTime(ctx, tx, editionId, category, sex)
 	if restErr != nil {
 		return restErr
 	}
 
-	restErr = updatePlacing(ctx, tx, userIds, editionId, category, sex)
+	userIds, restErr := updatePlacing(ctx, tx, editionId, category, sex)
 	if restErr != nil {
 		return  restErr
 	}
@@ -111,13 +112,13 @@ func (ar *adminRepository) MakePlacing(editionId, category, sex string) *rest_er
 	return nil
 }
 
-func updateFinalTime(ctx context.Context, tx *sql.Tx, editionId, category, sex string) ([]string, *rest_err.RestErr) {
-	query := `SELECT user_id, user_time FROM participant WHERE edition_id = ? AND category = ? AND sex = ? AND desqualified IS NULL ORDER BY user_time ASC`
+func updateFinalTime(ctx context.Context, tx *sql.Tx, editionId, category, sex string) (*rest_err.RestErr) {
+	query := `SELECT user_id, user_time FROM participant WHERE edition_id = ? AND category = ? AND sex = ? AND desqualified IS NULL AND final_time IS NULL ORDER BY user_time ASC`
 	rows, err := tx.QueryContext(ctx, query, editionId, category, sex)
 	if err != nil {
 		logger.Error("Error trying get participants", err, zap.String("journey", "MakePlacing Repository"))
 		_ = tx.Rollback()
-		return nil, rest_err.NewInternalServerError("server error")
+		return rest_err.NewInternalServerError("server error")
 	}
 	defer rows.Close()
 
@@ -128,10 +129,14 @@ func updateFinalTime(ctx context.Context, tx *sql.Tx, editionId, category, sex s
 		if err := rows.Scan(&userId, &time); err != nil {
 			logger.Error("Error trying Scan", err, zap.String("journey", "MakePlacing Repository"))
 			_ = tx.Rollback()
-			return nil, rest_err.NewInternalServerError("server error")
+			return rest_err.NewInternalServerError("server error")
 		}
 		userIds = append(userIds, userId)
 		times = append(times, time)
+	}
+
+	if(len(userIds) == 0) {
+		return nil
 	}
 
 	query = "UPDATE participant SET final_time = CASE user_id "
@@ -151,17 +156,38 @@ func updateFinalTime(ctx context.Context, tx *sql.Tx, editionId, category, sex s
 	endQuery += ")"
 	query += endQuery
 	args = append(args, endArgs...)
-
+	fmt.Println(query)
 	if _, err := tx.ExecContext(ctx, query, args...); err != nil {
 		logger.Error("Error updating final_time", err, zap.String("journey", "MakePlacing Repository"))
 		_ = tx.Rollback()
-		return nil, rest_err.NewInternalServerError("server error")
+		return rest_err.NewInternalServerError("server error")
 	}
-	return userIds, nil
+	return nil
 }
 
-func updatePlacing(ctx context.Context, tx *sql.Tx, userIds []string, editionId, category, sex string) *rest_err.RestErr {
-	query := "UPDATE participant SET placing = CASE user_id "
+func updatePlacing(ctx context.Context, tx *sql.Tx, editionId, category, sex string) ([]string, *rest_err.RestErr) {
+	query := `SELECT user_id FROM participant WHERE edition_id = ? AND category = ? AND sex = ? AND desqualified IS NULL ORDER BY user_time ASC`
+	rows, err := tx.QueryContext(ctx, query, editionId, category, sex)
+	if err != nil {
+		logger.Error("Error trying get participants", err, zap.String("journey", "MakePlacing Repository"))
+		_ = tx.Rollback()
+		return nil, rest_err.NewInternalServerError("server error")
+	}
+	defer rows.Close()
+
+	var userIds []string
+	for rows.Next() {
+		var userId string
+		if err := rows.Scan(&userId); err != nil {
+			logger.Error("Error trying Scan", err, zap.String("journey", "MakePlacing Repository"))
+			_ = tx.Rollback()
+			return nil, rest_err.NewInternalServerError("server error")
+		}
+		userIds = append(userIds, userId)
+	}
+
+
+	query = "UPDATE participant SET placing = CASE user_id "
 	endQuery := "END WHERE edition_id = ? AND category = ? AND sex = ? AND user_id IN ("
 	args := []any{}
 	endArgs := []any{editionId, category, sex}
@@ -182,9 +208,9 @@ func updatePlacing(ctx context.Context, tx *sql.Tx, userIds []string, editionId,
 	if _, err := tx.ExecContext(ctx, query, args...); err != nil {
 		logger.Error("Error updating placing", err, zap.String("journey", "MakePlacing Repository"))
 		_ = tx.Rollback()
-		return rest_err.NewInternalServerError("server error")
+		return userIds, rest_err.NewInternalServerError("server error")
 	}
-	return nil
+	return userIds, nil
 }
 
 func updateEarnings (ctx context.Context, tx *sql.Tx, userIds []string, tops []top,) *rest_err.RestErr {
