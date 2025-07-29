@@ -166,7 +166,7 @@ func updateFinalTime(ctx context.Context, tx *sql.Tx, editionId, category, sex s
 }
 
 func updatePlacing(ctx context.Context, tx *sql.Tx, editionId, category, sex string) ([]string, *rest_err.RestErr) {
-	query := `SELECT user_id FROM participant WHERE edition_id = ? AND category = ? AND sex = ? AND desqualified IS NULL ORDER BY user_time ASC`
+	query := `SELECT user_id FROM participant WHERE edition_id = ? AND category = ? AND sex = ? AND desqualified IS NULL ORDER BY final_time ASC`
 	rows, err := tx.QueryContext(ctx, query, editionId, category, sex)
 	if err != nil {
 		logger.Error("Error trying get participants", err, zap.String("journey", "MakePlacing Repository"))
