@@ -37,7 +37,7 @@ func (ar *adminRepository) GrantTicket(user string) *rest_err.RestErr {
 		return rest_err.NewInternalServerError("server error")
 	}
 
-	query = "SELECT 1 FROM direct_ticket WHERE user_id = ? AND edition_id = ?"
+	query = "SELECT 1 FROM direct_ticket WHERE user_id = ? AND edition_id = ? LIMIT 1"
 	var exists int
 	err = ar.mysql.QueryRowContext(ctx, query, user_id, edition_id).Scan(&exists)
 	if err != nil && err != sql.ErrNoRows {

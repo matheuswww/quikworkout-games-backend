@@ -52,7 +52,7 @@ func (er *participantRepository) HasTicket(user_id string) ([]PaymentInfos, *res
 	}
 
 	if len(paymentInfos) == 0 {
-		query = "SELECT 1 FROM direct_ticket WHERE user_id = ? AND edition_id = ?"
+		query = "SELECT 1 FROM direct_ticket WHERE user_id = ? AND edition_id = ? LIMIT 1"
 		var exists bool
 		err = er.mysql.QueryRowContext(ctx, query, user_id, editionID).Scan(&exists)
 		if err != nil && err != sql.ErrNoRows {

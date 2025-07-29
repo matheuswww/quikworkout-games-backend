@@ -125,7 +125,7 @@ func (ur *userRepository) GetParticipations(user_domain user_domain.UserDomainIn
 	moreDataQuery += "p.created_at < ? "
 	moreDataArgs = append(moreDataArgs, last.CreatedAt)
 
-	moreDataQuery += order
+	moreDataQuery += order + "LIMIT 1"
 
 	more := false
 	err = ur.mysql.QueryRowContext(ctx, moreDataQuery, moreDataArgs...).Scan(&more)

@@ -171,7 +171,7 @@ func (ar *adminRepository) GetParticipants(getParticipantsRequest *admin_request
 	}
 
 	moreDataQuery = moreDataQuery[:len(moreDataQuery)-4]
-	moreDataQuery += order
+	moreDataQuery += order + "LIMIT 1"
 	more := false
 	err = ar.mysql.QueryRowContext(ctx, moreDataQuery, moreDataArgs...).Scan(&more)
 	if err != nil && err != sql.ErrNoRows {
